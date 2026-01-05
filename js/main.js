@@ -1,8 +1,16 @@
 /**
  * Vine Tech App
- * Main JS — MVP Structure
- * Preparado para Auth, Supabase e Dashboard
+ * Main JS — MVP com Supabase
+ * Preparado para Auth, Database e FASE 4
  */
+
+const SUPABASE_URL = "https://yqxylyzizbrhtxsjxqet.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_L4npCOhNObMqKRh4u550KA_x3hwoAJT";
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
 document.addEventListener("DOMContentLoaded", () => {
   App.init();
@@ -14,11 +22,11 @@ const App = {
     isAuthenticated: false,
   },
 
-  init() {
+  async init() {
     console.log("Vine Tech App iniciado 🚀");
 
     this.cacheElements();
-    this.bindEvents();
+    await this.checkAuth();
     this.render();
   },
 
@@ -28,24 +36,40 @@ const App = {
     this.footer = document.querySelector(".app-footer");
   },
 
-  bindEvents() {
-    // Eventos futuros:
-    // login, logout, navegação, botões, etc.
+  async checkAuth() {
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error) {
+      console.error("Erro ao verificar autenticação:", error.message);
+      return;
+    }
+
+    this.state.user = data.user;
+    this.state.isAuthenticated = !!data.user;
+
+    console.log("Auth status:", this.state.isAuthenticated);
   },
 
   render() {
-    // Renderizações iniciais
-    // Ex: verificar autenticação, mostrar módulos, etc.
+    if (!this.state.isAuthenticated) {
+      console.log("Usuário não autenticado");
+    } else {
+      console.log("Usuário autenticado:", this.state.user.email);
+    }
   },
 
   // =============================
-  // AUTH (FUTURO)
+  // AUTH (PRÓXIMAS FASES)
   // =============================
-  login() {
-    console.log("Login em desenvolvimento");
+  async login(email, password) {
+    return supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
   },
 
-  logout() {
-    console.log("Logout em desenvolvimento");
+  async logout() {
+    await supabase.auth.signOut();
+    location.reload();
   },
 };
