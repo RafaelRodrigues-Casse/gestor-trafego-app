@@ -2,88 +2,764 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Vine Tech | Dashboard</title>
+  <title>Vine Tech — Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <!-- CSS global (seu style.css) -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    /* ===== RESET BÁSICO ===== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Arial, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ===== LAYOUT GERAL ===== */
+    .app-wrapper {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: 64px 1fr;
+      grid-template-areas:
+        "sidebar header"
+        "sidebar main";
+      min-height: 100vh;
+    }
+
+    .app-header {
+      grid-area: header;
+      background: #020617;
+      border-bottom: 1px solid #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: radial-gradient(circle at 30% 20%, #38bdf8, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #e5e7eb;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .logo-text span:first-child {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .logo-text span:last-child {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .badge-role {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #7dd3fc;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      grid-area: sidebar;
+      background: #020617;
+      border-right: 1px solid #1f2937;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .sidebar-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+      margin-bottom: 8px;
+      padding: 0 6px;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #9ca3af;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+
+    .nav-item a span.icon {
+      font-size: 16px;
+      width: 18px;
+      text-align: center;
+    }
+
+    .nav-item a:hover {
+      background: #0b1120;
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .nav-item a.active {
+      background: linear-gradient(90deg, #1d4ed8, #38bdf8);
+      color: #f9fafb;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px 8px 4px;
+      border-top: 1px solid #111827;
+      font-size: 11px;
+      color: #4b5563;
+    }
+
+    .sidebar-footer strong {
+      color: #9ca3af;
+    }
+
+    /* ===== MAIN / DASHBOARD ===== */
+    .app-main {
+      grid-area: main;
+      padding: 20px 24px 24px;
+      background: radial-gradient(circle at top left, #0b1120, #020617 52%);
+    }
+
+    .page-title-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .page-title-row h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #f9fafb;
+    }
+
+    .page-title-row p {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .verse-chip {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      color: #cbd5f5;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .verse-chip span {
+      color: #facc15;
+      margin-right: 6px;
+    }
+
+    /* CARDS GRID */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 14px;
+      padding: 14px 14px 16px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+    }
+
+    .card-tag {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.12);
+      color: #93c5fd;
+    }
+
+    .card-main-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #e5e7eb;
+      margin-bottom: 2px;
+    }
+
+    .card-subtext {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .card-subtext span.ok {
+      color: #22c55e;
+    }
+
+    .card-subtext span.warn {
+      color: #facc15;
+    }
+
+    /* LAYOUT 2 COLUNAS */
+    .columns {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 14px;
+      padding: 16px 16px 18px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+    }
+
+    .panel-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .panel-title-row h2 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #9ca3af;
+    }
+
+    .panel-title-row span {
+      font-size: 11px;
+      color: #4b5563;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .quick-btn {
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      padding: 10px 11px;
+      background: radial-gradient(circle at top left, #0b1120, #020617 80%);
+      color: #e5e7eb;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: border 0.15s, transform 0.1s, box-shadow 0.15s, background 0.15s;
+    }
+
+    .quick-btn span.label {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .quick-btn span.desc {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .quick-btn:hover {
+      border-color: #2563eb;
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+      background: radial-gradient(circle at top left, #1d4ed8, #020617 90%);
+    }
+
+    .timeline {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .timeline ul {
+      list-style: none;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .timeline li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .timeline li span.bullet {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      margin-top: 5px;
+    }
+
+    .timeline li span.text {
+      font-size: 12px;
+    }
+
+    .timeline li span.text strong {
+      color: #e5e7eb;
+    }
+
+    /* STATUS DA CONTA */
+    .account-status {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .status-item {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #020617;
+      border: 1px dashed #1f2937;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .status-item strong {
+      display: block;
+      margin-bottom: 3px;
+      color: #e5e7eb;
+      font-size: 12px;
+    }
+
+    .status-ok {
+      color: #4ade80;
+    }
+
+    .status-warn {
+      color: #facc15;
+    }
+
+    /* BOTÃO SAIR */
+    .btn-logout {
+      border-radius: 999px;
+      border: 1px solid #ef4444;
+      background: transparent;
+      color: #fecaca;
+      font-size: 12px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+
+    .btn-logout:hover {
+      background: #ef4444;
+      color: #111827;
+      transform: translateY(-1px);
+    }
+
+    /* FOOTER */
+    .app-footer {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #4b5563;
+      text-align: center;
+    }
+
+    .app-footer span.brand {
+      color: #93c5fd;
+    }
+
+    /* ===== RESPONSIVO ===== */
+    @media (max-width: 960px) {
+      .app-wrapper {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+        grid-template-areas:
+          "header"
+          "sidebar"
+          "main";
+      }
+
+      .sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 10px;
+      }
+
+      .nav-list {
+        flex-direction: row;
+      }
+
+      .columns {
+        grid-template-columns: 1fr;
+      }
+
+      .cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
 </head>
 
 <body>
-
-  <!-- HEADER -->
-  <header class="app-header">
-    <h1 class="logo">Vine Tech</h1>
-    <nav class="app-nav">
-      <a href="index.html">Início</a>
-      <a href="dashboard.html" class="active">Dashboard</a>
-      <a href="image-analysis.html">Análise por Imagem</a>
-    </nav>
-  </header>
-
-  <!-- MAIN -->
-  <main class="app-main">
-
-    <!-- BOAS-VINDAS -->
-    <section class="dashboard-welcome">
-      <h2>Dashboard do Gestor</h2>
-      <p>
-        Aqui você encontra clareza para decidir.<br>
-        Sem excesso de métricas. Sem confusão.
-      </p>
-    </section>
-
-    <!-- STATUS GERAL -->
-    <section class="dashboard-cards">
-
-      <div class="card">
-        <h3>Status Atual</h3>
-        <p>Campanhas ativas em análise</p>
-        <strong>🟡 Atenção estratégica</strong>
+  <div class="app-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-section-title">Navegação</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="dashboard.html" class="active">
+              <span class="icon">📊</span>
+              <span>Dashboard do Gestor</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="image-analysis.html">
+              <span class="icon">🧠</span>
+              <span>Diagnóstico de Campanhas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <span class="icon">🎯</span>
+              <span>Estratégias & Ofertas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <span class="icon">📁</span>
+              <span>Biblioteca de Criativos</span>
+            </a>
+          </li>
+        </ul>
       </div>
 
-      <div class="card">
-        <h3>Fase da Conta</h3>
-        <p>Aprendizado / Otimização</p>
-        <strong>📊 Em progresso</strong>
+      <div>
+        <div class="sidebar-section-title">Conta & Suporte</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#">
+              <span class="icon">👤</span>
+              <span>Perfil & Assinatura</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#">
+              <span class="icon">💬</span>
+              <span>Suporte & Contato</span>
+            </a>
+          </li>
+        </ul>
       </div>
 
-      <div class="card">
-        <h3>Ação Recomendada</h3>
-        <p>Evite alterações bruscas</p>
-        <strong>⏸ Ajustes leves</strong>
+      <div class="sidebar-footer">
+        <div><strong>Vine Tech</strong> — Plataforma para gestores de tráfego.</div>
+        <div>Versão MVP inicial • Acesso autenticado</div>
+      </div>
+    </aside>
+
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-mark">V</div>
+        <div class="logo-text">
+          <span>Vine Tech</span>
+          <span>Gestão inteligente de campanhas</span>
+        </div>
       </div>
 
-    </section>
-
-    <!-- DECISÃO CENTRAL -->
-    <section class="decision-box">
-      <h3>Decisão Central do Dia</h3>
-      <p>
-        Com base nos dados atuais, a recomendação é:
-      </p>
-      <div class="decision-highlight">
-        👉 Manter campanhas ativas e focar em otimizações graduais.
+      <div class="header-right">
+        <span class="badge-role">Admin</span>
+        <button id="logoutButton" class="btn-logout">Sair</button>
+        <div class="avatar" title="Usuário logado">
+          VT
+        </div>
       </div>
-    </section>
+    </header>
 
-    <!-- HISTÓRICO (PLACEHOLDER) -->
-    <section class="history">
-      <h3>Histórico de Diagnósticos</h3>
-      <p>
-        Nenhuma análise registrada ainda.<br>
-        Utilize a aba <strong>Análise por Imagem</strong> para gerar seu primeiro diagnóstico.
-      </p>
-    </section>
+    <!-- MAIN / DASHBOARD -->
+    <main class="app-main">
+      <div class="page-title-row">
+        <div>
+          <h1>Dashboard do Gestor</h1>
+          <p>
+            Visão geral rápida das suas campanhas, diagnósticos e próximos passos.
+          </p>
+        </div>
+        <div class="verse-chip">
+          <span>✝</span>
+          “Tudo posso naquele que me fortalece.” — Filipenses 4:13
+        </div>
+      </div>
 
-  </main>
+      <!-- CARDS RESUMO -->
+      <section class="cards-grid">
+        <article class="card">
+          <div class="card-header">
+            <span class="card-title">Campanhas Ativas</span>
+            <span class="card-tag">Hoje</span>
+          </div>
+          <div class="card-main-value">12</div>
+          <div class="card-subtext">
+            <span class="ok">8 estáveis</span> • 4 em otimização.
+          </div>
+        </article>
 
-  <!-- FOOTER -->
-  <footer class="app-footer">
-    <p>© Vine Tech — Clareza, Estratégia e Decisão</p>
-  </footer>
+        <article class="card">
+          <div class="card-header">
+            <span class="card-title">ROAS Médio</span>
+            <span class="card-tag">Últimos 7 dias</span>
+          </div>
+          <div class="card-main-value">4,2x</div>
+          <div class="card-subtext">
+            Meta mínima: 3,0x — <span class="ok">acima da meta</span>.
+          </div>
+        </article>
 
-  <!-- JS -->
+        <article class="card">
+          <div class="card-header">
+            <span class="card-title">Custo por Lead</span>
+            <span class="card-tag">Média geral</span>
+          </div>
+          <div class="card-main-value">R$ 7,80</div>
+          <div class="card-subtext">
+            <span class="warn">Requer atenção</span> em 2 campanhas.
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <span class="card-title">Último Diagnóstico</span>
+            <span class="card-tag">Vine Tech IA</span>
+          </div>
+          <div class="card-main-value">Campanha #A-104</div>
+          <div class="card-subtext">
+            Ajustar criativos e segmentação em até 48h.
+          </div>
+        </article>
+      </section>
+
+      <!-- COLUNAS PRINCIPAIS -->
+      <section class="columns">
+        <!-- COLUNA ESQUERDA: AÇÕES RÁPIDAS -->
+        <article class="panel">
+          <div class="panel-title-row">
+            <h2>Ações rápidas</h2>
+            <span>Use o Vine Tech no dia a dia</span>
+          </div>
+
+          <div class="quick-actions">
+            <a href="image-analysis.html" class="quick-btn">
+              <span class="label">Novo diagnóstico de campanha</span>
+              <span class="desc">
+                Envie criativos e prints para receber análises inteligentes.
+              </span>
+            </a>
+
+            <a href="#" class="quick-btn">
+              <span class="label">Revisar desempenho por funil</span>
+              <span class="desc">
+                Analise campanhas por topo, meio e fundo de funil.
+              </span>
+            </a>
+
+            <a href="#" class="quick-btn">
+              <span class="label">Organizar ofertas & promessas</span>
+              <span class="desc">
+                Estruture ofertas, produtos e âncoras de valor.
+              </span>
+            </a>
+
+            <a href="#" class="quick-btn">
+              <span class="label">Ver histórico de diagnósticos</span>
+              <span class="desc">
+                Consulte análises anteriores e recomendações aplicadas.
+              </span>
+            </a>
+          </div>
+        </article>
+
+        <!-- COLUNA DIREITA: PRÓXIMOS PASSOS -->
+        <article class="panel">
+          <div class="panel-title-row">
+            <h2>Próximos passos</h2>
+            <span>Fluxo sugerido para hoje</span>
+          </div>
+
+          <div class="timeline">
+            <ul>
+              <li>
+                <span class="bullet"></span>
+                <span class="text">
+                  <strong>1. Revisar criativos com pior CTR</strong><br />
+                  Faça um diagnóstico com o Vine Tech IA e planeje novos testes A/B.
+                </span>
+              </li>
+              <li>
+                <span class="bullet"></span>
+                <span class="text">
+                  <strong>2. Otimizar campanhas com CPL alto</strong><br />
+                  Negativar públicos ruins, ajustar segmentações e alocação de verba.
+                </span>
+              </li>
+              <li>
+                <span class="bullet"></span>
+                <span class="text">
+                  <strong>3. Consolidar aprendizados do dia</strong><br />
+                  Registre os principais insights para os próximos ciclos de campanha.
+                </span>
+              </li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <!-- STATUS DA CONTA -->
+      <section class="panel">
+        <div class="panel-title-row">
+          <h2>Status da conta</h2>
+          <span>Informações gerais do acesso Vine Tech</span>
+        </div>
+
+        <div class="account-status">
+          <div class="status-item">
+            <strong>Situação do acesso</strong>
+            <span class="status-ok">Ativo • Autenticado pelo Supabase</span>
+          </div>
+
+          <div class="status-item">
+            <strong>Plano atual</strong>
+            <span>Assinatura / Liberação especial via Kiwify</span>
+          </div>
+
+          <div class="status-item">
+            <strong>Próximos recursos</strong>
+            <span class="status-warn">
+              Dashboard dinâmico, métricas reais e integrações com plataformas de anúncios.
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <span class="brand">Vine Tech</span> — Gestão de Tráfego com Estrutura, Estratégia e Excelência.
+      </footer>
+    </main>
+  </div>
+
+  <!-- Supabase + App JS -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="js/main.js"></script>
+
+  <!-- Liga o botão de sair ao App.logout() -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("logoutButton");
+      if (btn && window.App && typeof App.logout === "function") {
+        btn.addEventListener("click", () => {
+          App.logout();
+        });
+      }
+    });
+  </script>
 </body>
 </html>
