@@ -1,6 +1,6 @@
 /**
  * Vine Tech App
- * Main JS — Login simples + Redirecionamento para Dashboard
+ * main.js — Login simples + Redirecionamento para Dashboard
  * Versão com DEBUG forte para garantir funcionamento
  */
 
@@ -11,10 +11,8 @@ const SUPABASE_URL = "https://yqxylyzizbrhtxsjxqet.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_L4npCOhNObMqKRh4u550KA_x3hwoAJT";
 
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
+// vamos criar o client DEPOIS que o Supabase carregar
+let supabaseClient = null;
 
 // =============================
 // HELPERS
@@ -46,8 +44,24 @@ function formatErrorMessage(error) {
 // =============================
 
 document.addEventListener("DOMContentLoaded", () => {
-  alert("main.js carregado (Vine Tech)");
-  console.log("main.js carregado (Vine Tech)");
+  alert("main.js carregado (Vine Tech v2)");
+  console.log("main.js carregado (Vine Tech v2)");
+
+  // garante que a biblioteca do Supabase existe
+  if (!window.supabase) {
+    alert("ERRO: biblioteca @supabase/supabase-js NÃO carregou.");
+    console.error("window.supabase está undefined. Verifique a tag <script> do Supabase no login.html.");
+    return;
+  }
+
+  // agora sim criamos o client
+  supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  console.log("Supabase client criado:", !!supabaseClient);
+
   App.init();
 });
 
@@ -61,7 +75,7 @@ const App = {
     this.cacheElements();
 
     if (isLoginPage()) {
-      alert("Página de login detectada");
+      alert("Página de login detectada (init)");
       this.setupLoginPage();
     } else {
       console.log("Não é página de login, App.init terminou.");
@@ -80,6 +94,15 @@ const App = {
     this.forgotPasswordButton =
       document.querySelector("#forgotPasswordButton");
     this.loginErrorBox = document.querySelector("#loginError");
+
+    console.log("Elementos cacheados:", {
+      loginForm: !!this.loginForm,
+      loginEmailInput: !!this.loginEmailInput,
+      loginPasswordInput: !!this.loginPasswordInput,
+      loginButton: !!this.loginButton,
+      forgotPasswordButton: !!this.forgotPasswordButton,
+      loginErrorBox: !!this.loginErrorBox,
+    });
   },
 
   // =============================
@@ -87,12 +110,12 @@ const App = {
   // =============================
   setupLoginPage() {
     if (!this.loginForm || !this.loginButton) {
-      alert("ERRO: Formulário de login não encontrado no HTML.");
+      alert("ERRO: Formulário de login NÃO encontrado no HTML.");
       console.warn("loginForm ou loginButton não encontrados.");
       return;
     }
 
-    alert("Formulário de login encontrado. Handlers sendo conectados.");
+    alert("Formulário de login encontrado. Handlers conectados.");
 
     this.loginForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -146,13 +169,21 @@ const App = {
       return;
     }
 
+    if (!supabaseClient) {
+      const msg =
+        "Client do Supabase não foi inicializado. Verifique se o script do Supabase carregou corretamente.";
+      console.error(msg);
+      alert(msg);
+      return;
+    }
+
     if (this.loginButton) {
       this.loginButton.disabled = true;
       this.loginButton.textContent = "Entrando...";
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password,
       });
@@ -174,7 +205,7 @@ const App = {
 
       alert("Login OK para: " + user.email + " — redirecionando…");
 
-      // 👉 Por enquanto vamos para o DASHBOARD
+      // 👉 Depois podemos mudar para outro dashboard se quiser
       navigateTo("dashboard.html");
     } catch (err) {
       console.error("Erro inesperado no login:", err);
@@ -202,13 +233,22 @@ const App = {
       return;
     }
 
+    if (!supabaseClient) {
+      const msg =
+        "Client do Supabase não foi inicializado. Verifique se o script do Supabase carregou corretamente.";
+      console.error(msg);
+      alert(msg);
+      return;
+    }
+
     try {
       const redirectTo =
         "https://rafaelrodrigues-casse.github.io/gestor-trafego-app/reset-password.html";
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
-      });
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(
+        email,
+        { redirectTo }
+      );
 
       if (error) {
         console.error("Erro ao enviar e-mail de redefinição:", error);
@@ -233,7 +273,9 @@ const App = {
   },
 
   async logout() {
-    await supabase.auth.signOut();
+    if (supabaseClient) {
+      await supabaseClient.auth.signOut();
+    }
     this.state.user = null;
     this.state.isAuthenticated = false;
     navigateTo("login.html");
