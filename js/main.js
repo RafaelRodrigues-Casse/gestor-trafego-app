@@ -201,7 +201,7 @@ const App = {
       return;
     }
 
-    // 🔹 IMPORTANTE: handler do SUBMIT (ENTER ou clique no botão)
+    // 🔹 Handler do SUBMIT (ENTER ou clique no botão)
     if (this.loginForm) {
       this.loginForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -241,6 +241,9 @@ const App = {
     this.loginErrorBox.style.display = "none";
   },
 
+  // =============================
+  // LOGIN (COM BYPASS ADMIN)
+  // =============================
   async handleLoginSubmit() {
     this.clearLoginError();
 
@@ -274,7 +277,24 @@ const App = {
       this.state.user = user;
       this.state.isAuthenticated = true;
 
-      // Carrega o registro de acesso
+      console.log("Usuário logado:", user.email);
+      console.log("app_metadata recebido:", user.app_metadata);
+
+      // 🟦 BYPASS PARA ADMIN
+      const appMeta = user.app_metadata || {};
+      const isAdmin =
+        appMeta.role === "admin" || appMeta.is_admin === true;
+
+      if (isAdmin) {
+        console.log(
+          "Login ADMIN bem-sucedido. Pulando validação de user_access e redirecionando..."
+        );
+        // Por enquanto manda para a home; depois podemos trocar para dashboard.html
+        navigateTo("index.html");
+        return;
+      }
+
+      // 🔹 Fluxo normal para usuários comuns (com tabela user_access)
       await this.loadUserAccess(user);
 
       if (this.isAccessExpired()) {
