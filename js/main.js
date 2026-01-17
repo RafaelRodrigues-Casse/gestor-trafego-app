@@ -242,7 +242,7 @@ const App = {
   },
 
   // =============================
-  // LOGIN (COM BYPASS ADMIN)
+  // LOGIN (COM BYPASS ADMIN) — VERSÃO DEBUG
   // =============================
   async handleLoginSubmit() {
     this.clearLoginError();
@@ -252,8 +252,11 @@ const App = {
 
     if (!email || !password) {
       this.showLoginError("Por favor, preencha e-mail e senha para entrar.");
+      alert("Preencha e-mail e senha.");
       return;
     }
+
+    console.log("Tentando login com:", email);
 
     // Desabilita o botão enquanto faz o login
     if (this.loginButton) {
@@ -267,9 +270,12 @@ const App = {
         password,
       });
 
+      console.log("Resposta do Supabase (signInWithPassword):", { data, error });
+
       if (error) {
-        console.error("Erro no login:", error.message);
+        console.error("Erro no login Supabase:", error);
         this.showLoginError("E-mail ou senha inválidos. Tente novamente.");
+        alert("Falha no login: " + (error.message || String(error)));
         return;
       }
 
@@ -280,55 +286,48 @@ const App = {
       console.log("Usuário logado:", user.email);
       console.log("app_metadata recebido:", user.app_metadata);
 
-      // 🟦 BYPASS PARA ADMIN
+      // 🟦 BYPASS ADMIN (debug)
       const appMeta = user.app_metadata || {};
-      const isAdmin =
-        appMeta.role === "admin" || appMeta.is_admin === true;
+      const isAdmin = appMeta.role === "admin" || appMeta.is_admin === true;
+      console.log("isAdmin calculado:", isAdmin);
 
       if (isAdmin) {
-        console.log(
-          "Login ADMIN bem-sucedido. Pulando validação de user_access e redirecionando..."
-        );
-        // Por enquanto manda para a home; depois podemos trocar para dashboard.html
+        alert("Login ADMIN OK! Redirecionando para a home (index.html)...");
         navigateTo("index.html");
         return;
       }
 
-      // 🔹 Fluxo normal para usuários comuns (com tabela user_access)
+      // 🔹 Fluxo normal (user_access)
       await this.loadUserAccess(user);
+      console.log("Registro em user_access:", this.state.access);
 
       if (this.isAccessExpired()) {
-        // Se acesso estiver expirado ou não cadastrado
         await supabase.auth.signOut();
         this.state.user = null;
         this.state.isAuthenticated = false;
         this.state.access = null;
 
-        this.showLoginError(
+        const msg =
           "Seu acesso ao Vine Tech está expirado ou ainda não foi liberado. " +
-            "Verifique sua assinatura ou fale com o suporte."
-        );
+          "Verifique sua assinatura ou fale com o suporte.";
+        this.showLoginError(msg);
+        alert(msg);
         return;
       }
 
-      // Acesso ativo — decide para onde mandar
       const access = this.state.access;
 
       if (access && access.first_login) {
-        // FUTURO: página de primeiro acesso / troca de senha
-        console.log(
-          "Primeiro acesso detectado. Redirecionando para a página inicial (depois trocamos para primeiro-acesso.html)..."
-        );
+        alert("Login OK (primeiro acesso). Redirecionando para index.html...");
         navigateTo("index.html");
       } else {
-        console.log(
-          "Login bem-sucedido. Redirecionando para a página inicial..."
-        );
-        navigateTo("index.html"); // depois trocamos para dashboard.html
+        alert("Login OK. Redirecionando para index.html...");
+        navigateTo("index.html");
       }
     } catch (err) {
       console.error("Erro inesperado no login:", err);
       this.showLoginError(formatErrorMessage(err));
+      alert("Erro inesperado: " + formatErrorMessage(err));
     } finally {
       // Restaura o botão
       if (this.loginButton) {
