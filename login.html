@@ -139,6 +139,7 @@
       margin-top: 10px;
       color: #fecaca;
       font-size: 13px;
+      min-height: 18px;
     }
 
     .app-footer {
@@ -218,9 +219,166 @@
     © Vine Tech — Gestão Inteligente para Gestores de Tráfego
   </footer>
 
-  <!-- Supabase + JS principal -->
+  <!-- Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <!-- OBS: ?v=3 força o navegador a baixar a versão nova do main.js -->
-  <script src="js/main.js?v=3"></script>
+
+  <!-- Script do LOGIN (inline, sem depender do main.js) -->
+  <script>
+    // Config Supabase
+    const SUPABASE_URL = "https://yqxylyzizbrhtxsjxqet.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_L4npCOhNObMqKRh4u550KA_x3hwoAJT";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      alert("Login Vine Tech carregado");
+
+      if (!window.supabase) {
+        alert("ERRO: biblioteca Supabase não carregou.");
+        console.error("window.supabase está undefined.");
+        return;
+      }
+
+      const supabase = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      );
+
+      const loginForm = document.getElementById("loginForm");
+      const emailInput = document.getElementById("loginEmail");
+      const passwordInput = document.getElementById("loginPassword");
+      const loginButton = document.getElementById("loginButton");
+      const forgotButton = document.getElementById("forgotPasswordButton");
+      const errorBox = document.getElementById("loginError");
+
+      function showError(msg) {
+        if (errorBox) {
+          errorBox.textContent = msg;
+        } else {
+          alert(msg);
+        }
+      }
+
+      function clearError() {
+        if (errorBox) {
+          errorBox.textContent = "";
+        }
+      }
+
+      async function handleLogin(event) {
+        if (event) event.preventDefault();
+
+        clearError();
+
+        const email = (emailInput.value || "").trim();
+        const password = (passwordInput.value || "").trim();
+
+        if (!email || !password) {
+          const msg = "Por favor, preencha e-mail e senha para entrar.";
+          showError(msg);
+          alert(msg);
+          return;
+        }
+
+        if (loginButton) {
+          loginButton.disabled = true;
+          loginButton.textContent = "Entrando...";
+        }
+
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
+
+          console.log("Resposta Supabase login:", { data, error });
+
+          if (error) {
+            const msg =
+              "E-mail ou senha inválidos. Verifique os dados e tente novamente.";
+            showError(msg);
+            alert("Falha no login: " + (error.message || String(error)));
+            return;
+          }
+
+          const user = data.user;
+          alert("Login OK para: " + user.email + " — redirecionando…");
+
+          // Redireciona para o dashboard
+          window.location.href = "dashboard.html";
+        } catch (err) {
+          console.error("Erro inesperado no login:", err);
+          const msg = err && err.message
+            ? err.message
+            : "Ocorreu um erro. Tente novamente.";
+          showError(msg);
+          alert("Erro inesperado: " + msg);
+        } finally {
+          if (loginButton) {
+            loginButton.disabled = false;
+            loginButton.textContent = "Entrar";
+          }
+        }
+      }
+
+      async function handleForgotPassword(event) {
+        if (event) event.preventDefault();
+
+        clearError();
+
+        const email = (emailInput.value || "").trim();
+
+        if (!email) {
+          const msg =
+            "Por favor, informe o e-mail usado no cadastro para recuperar a senha.";
+          showError(msg);
+          alert(msg);
+          return;
+        }
+
+        try {
+          const redirectTo =
+            "https://rafaelrodrigues-casse.github.io/gestor-trafego-app/reset-password.html";
+
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: redirectTo
+          });
+
+          if (error) {
+            console.error("Erro ao enviar e-mail de redefinição:", error);
+            const msg =
+              "Não foi possível enviar o e-mail de redefinição. Tente novamente em alguns instantes.";
+            showError(msg);
+            alert(msg);
+            return;
+          }
+
+          const msg =
+            "Enviamos um link de redefinição de senha para o seu e-mail. " +
+            "Verifique sua caixa de entrada e o spam.";
+          showError(msg);
+          alert(msg);
+        } catch (err) {
+          console.error("Erro inesperado em handleForgotPassword:", err);
+          const msg = err && err.message
+            ? err.message
+            : "Ocorreu um erro. Tente novamente.";
+          showError(msg);
+          alert("Erro inesperado: " + msg);
+        }
+      }
+
+      if (loginForm) {
+        loginForm.addEventListener("submit", handleLogin);
+      }
+
+      if (loginButton) {
+        loginButton.addEventListener("click", handleLogin);
+      }
+
+      if (forgotButton) {
+        forgotButton.addEventListener("click", handleForgotPassword);
+      }
+    });
+  </script>
 </body>
 </html>
