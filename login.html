@@ -5,7 +5,7 @@
   <title>Vine Tech — Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Opcional: se já existir css/style.css, pode usar o mesmo -->
+  <!-- CSS principal -->
   <link rel="stylesheet" href="css/style.css" />
 
   <style>
@@ -196,7 +196,6 @@
             Entrar
           </button>
 
-          <!-- Vamos ligar depois na parte de recuperação de senha -->
           <button
             type="button"
             id="forgotPasswordButton"
@@ -221,6 +220,7 @@
 
   <!-- Supabase + JS principal -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="js/main.js"></script>
+  <!-- OBS: ?v=3 força o navegador a baixar a versão nova do main.js -->
+  <script src="js/main.js?v=3"></script>
 </body>
 </html>
