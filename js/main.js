@@ -1,13 +1,18 @@
 /**
  * Vine Tech App
- * Main JS — Auth + Controle de Acesso + Login
- * Pronto para GitHub Pages + Supabase
+ * Main JS — Login simples + Supabase
+ * Focado em: LOGIN FUNCIONAL + REDIRECIONAR PARA INDEX
  */
 
 // =============================
 // DEBUG INICIAL
 // =============================
 console.log("main.js carregado (Vine Tech)");
+
+/**
+ * Se quiser, pode comentar essa linha depois:
+ * // alert("main.js carregado (Vine Tech)");
+ */
 alert("main.js carregado (Vine Tech)");
 
 // =============================
@@ -41,39 +46,25 @@ try {
 }
 
 // =============================
-// HELPERS GERAIS
+// HELPERS
 // =============================
 
-/**
- * Descobre se estamos na página de login.
- */
 function isLoginPage() {
   return window.location.pathname.includes("login.html");
 }
 
-/**
- * Monta uma URL para outra página do app,
- * respeitando o caminho atual (GitHub Pages, etc).
- */
 function buildAppUrl(pageName) {
   const parts = window.location.pathname.split("/");
-  // troca apenas o último segmento (arquivo .html)
   parts[parts.length - 1] = pageName;
   return parts.join("/");
 }
 
-/**
- * Redireciona para outra página do app.
- */
 function navigateTo(pageName) {
   const url = buildAppUrl(pageName);
   console.log("Redirecionando para:", url);
   window.location.href = url;
 }
 
-/**
- * Formata uma mensagem de erro amigável.
- */
 function formatErrorMessage(error) {
   if (!error) return "Ocorreu um erro. Tente novamente.";
   if (error.message) return error.message;
@@ -81,7 +72,7 @@ function formatErrorMessage(error) {
 }
 
 // =============================
-// APLICAÇÃO PRINCIPAL
+// APP
 // =============================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -93,21 +84,14 @@ const App = {
   state: {
     user: null,
     isAuthenticated: false,
-    access: null, // registro da tabela user_access
   },
 
-  // ---------------------------
-  // INICIALIZAÇÃO
-  // ---------------------------
   async init() {
     console.log("Vine Tech App iniciado 🚀");
 
     this.cacheElements();
 
     if (!supabaseClient) {
-      console.warn(
-        "supabaseClient está nulo — a autenticação não vai funcionar."
-      );
       this.showLoginError(
         "Erro ao conectar com o servidor de autenticação. Tente recarregar a página (CTRL+F5)."
       );
@@ -123,7 +107,6 @@ const App = {
     this.main = document.querySelector(".app-main");
     this.footer = document.querySelector(".app-footer");
 
-    // Elementos do LOGIN (se existirem)
     this.loginForm = document.querySelector("#loginForm");
     this.loginEmailInput = document.querySelector("#loginEmail");
     this.loginPasswordInput = document.querySelector("#loginPassword");
@@ -132,7 +115,7 @@ const App = {
       document.querySelector("#forgotPasswordButton");
     this.loginErrorBox = document.querySelector("#loginError");
 
-    console.log("Elementos cacheados:", {
+    console.log("Elementos de login encontrados:", {
       loginForm: !!this.loginForm,
       loginEmailInput: !!this.loginEmailInput,
       loginPasswordInput: !!this.loginPasswordInput,
@@ -143,7 +126,7 @@ const App = {
   },
 
   // ---------------------------
-  // AUTENTICAÇÃO / SESSÃO
+  // AUTENTICAÇÃO
   // ---------------------------
   async checkAuth() {
     if (!supabaseClient) return;
@@ -154,72 +137,15 @@ const App = {
       console.error("Erro ao verificar autenticação:", error.message);
       this.state.user = null;
       this.state.isAuthenticated = false;
-      this.state.access = null;
       return;
     }
 
     this.state.user = data.user;
     this.state.isAuthenticated = !!data.user;
 
-    if (this.state.isAuthenticated && this.state.user) {
-      await this.loadUserAccess(this.state.user);
-    }
-
     console.log("Auth status:", this.state.isAuthenticated);
   },
 
-  /**
-   * Carrega o registro da tabela user_access para o usuário logado.
-   */
-  async loadUserAccess(user) {
-    if (!supabaseClient) return;
-
-    try {
-      const { data: access, error } = await supabaseClient
-        .from("user_access")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Erro ao carregar user_access:", error.message);
-        this.state.access = null;
-        return;
-      }
-
-      this.state.access = access;
-      console.log("user_access carregado:", access);
-    } catch (err) {
-      console.error("Erro inesperado em loadUserAccess:", err);
-      this.state.access = null;
-    }
-  },
-
-  /**
-   * Verifica se o acesso do usuário está expirado.
-   * Retorna true se estiver expirado ou sem registro.
-   */
-  isAccessExpired() {
-    const access = this.state.access;
-
-    if (!access) {
-      // Sem registro => sem acesso liberado
-      return true;
-    }
-
-    const now = new Date();
-    const end = new Date(access.access_end);
-
-    if (access.status === "expired") return true;
-    if (Number.isNaN(end.getTime())) return true;
-    if (end < now) return true;
-
-    return false;
-  },
-
-  /**
-   * Configura o comportamento específico da página atual.
-   */
   setupPage() {
     console.log("setupPage() — pathname:", window.location.pathname);
 
@@ -245,25 +171,21 @@ const App = {
   // =============================
 
   setupLoginPage() {
-    // Se já está autenticado e com acesso ativo, manda direto para a home
-    if (this.state.isAuthenticated && !this.isAccessExpired()) {
-      console.log(
-        "Usuário já autenticado. Redirecionando para a página inicial..."
-      );
-      navigateTo("index.html"); // por enquanto usamos a home
+    // Se já está autenticado, manda direto para a home
+    if (this.state.isAuthenticated) {
+      console.log("Usuário já autenticado. Indo para index.html...");
+      navigateTo("index.html");
       return;
     }
 
     if (!this.loginForm) {
-      console.warn(
-        "setupLoginPage chamado mas #loginForm não foi encontrado no DOM."
-      );
+      console.warn("setupLoginPage: #loginForm não encontrado.");
       return;
     }
 
-    console.log("Registrando handlers de login...");
+    console.log("Registrando handlers na página de login...");
 
-    // SUBMIT (ENTER ou clique no botão)
+    // SUBMIT (ENTER)
     this.loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       console.log("submit do formulário disparado");
@@ -291,7 +213,7 @@ const App = {
 
   showLoginError(message) {
     if (!this.loginErrorBox) {
-      alert(message); // fallback simples
+      alert(message);
       return;
     }
 
@@ -306,7 +228,7 @@ const App = {
   },
 
   // =============================
-  // LOGIN (COM BYPASS ADMIN + DEBUG)
+  // LOGIN SIMPLES
   // =============================
   async handleLoginSubmit() {
     console.log("handleLoginSubmit() chamado");
@@ -360,44 +282,8 @@ const App = {
       console.log("Usuário logado:", user.email);
       console.log("app_metadata recebido:", user.app_metadata);
 
-      // BYPASS ADMIN (debug)
-      const appMeta = user.app_metadata || {};
-      const isAdmin = appMeta.role === "admin" || appMeta.is_admin === true;
-      console.log("isAdmin calculado:", isAdmin);
-
-      if (isAdmin) {
-        alert("Login ADMIN OK! Redirecionando para a home (index.html)...");
-        navigateTo("index.html");
-        return;
-      }
-
-      // Fluxo normal (user_access)
-      await this.loadUserAccess(user);
-      console.log("Registro em user_access:", this.state.access);
-
-      if (this.isAccessExpired()) {
-        await supabaseClient.auth.signOut();
-        this.state.user = null;
-        this.state.isAuthenticated = false;
-        this.state.access = null;
-
-        const msg =
-          "Seu acesso ao Vine Tech está expirado ou ainda não foi liberado. " +
-          "Verifique sua assinatura ou fale com o suporte.";
-        this.showLoginError(msg);
-        alert(msg);
-        return;
-      }
-
-      const access = this.state.access;
-
-      if (access && access.first_login) {
-        alert("Login OK (primeiro acesso). Redirecionando para index.html...");
-        navigateTo("index.html");
-      } else {
-        alert("Login OK. Redirecionando para index.html...");
-        navigateTo("index.html");
-      }
+      alert("Login OK! Redirecionando para o Vine Tech (index.html)...");
+      navigateTo("index.html");
     } catch (err) {
       console.error("Erro inesperado no login:", err);
       this.showLoginError(formatErrorMessage(err));
@@ -470,7 +356,7 @@ const App = {
   },
 
   // =============================
-  // MÉTODOS PÚBLICOS ADICIONAIS
+  // FUNÇÕES PÚBLICAS (EXTRA)
   // =============================
   async login(email, password) {
     if (!supabaseClient) {
@@ -485,7 +371,6 @@ const App = {
     }
     this.state.user = null;
     this.state.isAuthenticated = false;
-    this.state.access = null;
     navigateTo("login.html");
   },
 };
