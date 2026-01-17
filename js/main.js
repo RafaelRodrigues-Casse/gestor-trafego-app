@@ -8,7 +8,8 @@
 // CONFIGURAÇÃO SUPABASE
 // =============================
 const SUPABASE_URL = "https://yqxylyzizbrhtxsjxqet.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_L4npCOhNObMqKRh4u550KA_x3hwoAJT";
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_L4npCOhNObMqKRh4u550KA_x3hwoAJT";
 
 const supabase = window.supabase.createClient(
   SUPABASE_URL,
@@ -90,7 +91,8 @@ const App = {
     this.loginEmailInput = document.querySelector("#loginEmail");
     this.loginPasswordInput = document.querySelector("#loginPassword");
     this.loginButton = document.querySelector("#loginButton");
-    this.forgotPasswordButton = document.querySelector("#forgotPasswordButton");
+    this.forgotPasswordButton =
+      document.querySelector("#forgotPasswordButton");
     this.loginErrorBox = document.querySelector("#loginError");
   },
 
@@ -190,19 +192,25 @@ const App = {
   // =============================
 
   setupLoginPage() {
-    // Se já está autenticado e com acesso ativo, manda direto pro dashboard
+    // Se já está autenticado e com acesso ativo, manda direto para a home
     if (this.state.isAuthenticated && !this.isAccessExpired()) {
-      console.log("Usuário já autenticado. Redirecionando para o dashboard...");
-      navigateTo("dashboard.html");
+      console.log(
+        "Usuário já autenticado. Redirecionando para a página inicial..."
+      );
+      navigateTo("index.html"); // por enquanto usamos a home
       return;
     }
 
-    // Garante que os elementos existem antes de registrar handlers
-    if (this.loginForm && this.loginButton) {
-      this.loginForm.addEventListener("submit", (event) => {
+    // 🔹 IMPORTANTE: handler do SUBMIT (ENTER ou clique no botão)
+    if (this.loginForm) {
+      this.loginForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+        await this.handleLoginSubmit();
       });
+    }
 
+    // Handler extra no botão, caso exista um botão separado
+    if (this.loginButton) {
       this.loginButton.addEventListener("click", async (event) => {
         event.preventDefault();
         await this.handleLoginSubmit();
@@ -288,11 +296,15 @@ const App = {
 
       if (access && access.first_login) {
         // FUTURO: página de primeiro acesso / troca de senha
-        console.log("Primeiro acesso detectado. Redirecionando para primeiro-acesso.html");
-        navigateTo("primeiro-acesso.html");
+        console.log(
+          "Primeiro acesso detectado. Redirecionando para a página inicial (depois trocamos para primeiro-acesso.html)..."
+        );
+        navigateTo("index.html");
       } else {
-        console.log("Login bem-sucedido. Redirecionando para dashboard.html");
-        navigateTo("dashboard.html");
+        console.log(
+          "Login bem-sucedido. Redirecionando para a página inicial..."
+        );
+        navigateTo("index.html"); // depois trocamos para dashboard.html
       }
     } catch (err) {
       console.error("Erro inesperado no login:", err);
@@ -319,8 +331,9 @@ const App = {
     }
 
     try {
+      // URL fixa que já configuramos na Supabase
       const redirectTo =
-        window.location.origin + buildAppUrl("reset-password.html");
+        "https://rafaelrodrigues-casse.github.io/gestor-trafego-app/reset-password.html";
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
