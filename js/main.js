@@ -1,7 +1,7 @@
 /**
  * Vine Tech App
- * Main JS — Auth + Controle de Acesso + Login
- * Pronto para GitHub Pages + Supabase
+ * Main JS — Login simples + Redirecionamento para Dashboard
+ * Versão simplificada e estável para MVP
  */
 
 // =============================
@@ -17,7 +17,7 @@ const supabase = window.supabase.createClient(
 );
 
 // =============================
-// HELPERS GERAIS
+// HELPERS
 // =============================
 
 /**
@@ -33,7 +33,6 @@ function isLoginPage() {
  */
 function buildAppUrl(pageName) {
   const parts = window.location.pathname.split("/");
-  // troca apenas o último segmento (arquivo .html)
   parts[parts.length - 1] = pageName;
   return parts.join("/");
 }
@@ -47,7 +46,7 @@ function navigateTo(pageName) {
 }
 
 /**
- * Formata uma mensagem de erro amigável.
+ * Formata mensagem de erro.
  */
 function formatErrorMessage(error) {
   if (!error) return "Ocorreu um erro. Tente novamente.";
@@ -56,10 +55,11 @@ function formatErrorMessage(error) {
 }
 
 // =============================
-// APLICAÇÃO PRINCIPAL
+// APLICAÇÃO
 // =============================
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("main.js carregado (Vine Tech)");
   App.init();
 });
 
@@ -67,21 +67,21 @@ const App = {
   state: {
     user: null,
     isAuthenticated: false,
-    access: null, // registro da tabela user_access
   },
 
   // ---------------------------
   // INICIALIZAÇÃO
   // ---------------------------
   async init() {
-    console.log("Vine Tech App iniciado 🚀");
-
     this.cacheElements();
-    await this.checkAuth();
-    this.setupPage();
+
+    if (isLoginPage()) {
+      this.setupLoginPage();
+    }
   },
 
   cacheElements() {
+    // Elementos do layout (para uso futuro)
     this.header = document.querySelector(".app-header");
     this.main = document.querySelector(".app-main");
     this.footer = document.querySelector(".app-footer");
@@ -96,138 +96,44 @@ const App = {
     this.loginErrorBox = document.querySelector("#loginError");
   },
 
-  // ---------------------------
-  // AUTENTICAÇÃO / SESSÃO
-  // ---------------------------
-  async checkAuth() {
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error) {
-      console.error("Erro ao verificar autenticação:", error.message);
-      this.state.user = null;
-      this.state.isAuthenticated = false;
-      this.state.access = null;
-      return;
-    }
-
-    this.state.user = data.user;
-    this.state.isAuthenticated = !!data.user;
-
-    if (this.state.isAuthenticated && this.state.user) {
-      await this.loadUserAccess(this.state.user);
-    }
-
-    console.log("Auth status:", this.state.isAuthenticated);
-  },
-
-  /**
-   * Carrega o registro da tabela user_access para o usuário logado.
-   */
-  async loadUserAccess(user) {
-    try {
-      const { data: access, error } = await supabase
-        .from("user_access")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Erro ao carregar user_access:", error.message);
-        this.state.access = null;
-        return;
-      }
-
-      this.state.access = access;
-    } catch (err) {
-      console.error("Erro inesperado em loadUserAccess:", err);
-      this.state.access = null;
-    }
-  },
-
-  /**
-   * Verifica se o acesso do usuário está expirado.
-   * Retorna true se estiver expirado ou sem registro.
-   */
-  isAccessExpired() {
-    const access = this.state.access;
-
-    if (!access) {
-      // Sem registro => sem acesso liberado
-      return true;
-    }
-
-    const now = new Date();
-    const end = new Date(access.access_end);
-
-    if (access.status === "expired") return true;
-    if (Number.isNaN(end.getTime())) return true;
-    if (end < now) return true;
-
-    return false;
-  },
-
-  /**
-   * Configura o comportamento específico da página atual.
-   */
-  setupPage() {
-    if (isLoginPage()) {
-      this.setupLoginPage();
-    } else {
-      // Aqui no futuro vamos proteger páginas privadas,
-      // como dashboard, image-analysis etc.
-      this.render();
-    }
-  },
-
-  render() {
-    if (!this.state.isAuthenticated) {
-      console.log("Usuário não autenticado");
-    } else {
-      console.log("Usuário autenticado:", this.state.user.email);
-    }
-  },
-
   // =============================
   // LOGIN PAGE
   // =============================
-
   setupLoginPage() {
-    // Se já está autenticado e com acesso ativo, manda direto para o dashboard
-    if (this.state.isAuthenticated && !this.isAccessExpired()) {
-      console.log(
-        "Usuário já autenticado. Redirecionando para o dashboard..."
+    console.log("Configuração da página de login...");
+
+    if (!this.loginForm || !this.loginButton) {
+      console.warn("Elementos do formulário de login não encontrados.");
+      alert(
+        "Erro ao carregar o formulário de login. Verifique o HTML do login."
       );
-      navigateTo("dashboard.html");
       return;
     }
 
-    // Handler do SUBMIT (ENTER ou clique no botão)
-    if (this.loginForm) {
-      this.loginForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        await this.handleLoginSubmit();
-      });
-    }
+    // SUBMIT (apertar Enter)
+    this.loginForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.handleLoginSubmit();
+    });
 
-    // Handler extra no botão, caso exista um botão separado
-    if (this.loginButton) {
-      this.loginButton.addEventListener("click", async (event) => {
-        event.preventDefault();
-        await this.handleLoginSubmit();
-      });
-    }
+    // Clique no botão "Entrar"
+    this.loginButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      this.handleLoginSubmit();
+    });
 
+    // Clique em "Esqueci minha senha"
     if (this.forgotPasswordButton) {
-      this.forgotPasswordButton.addEventListener("click", async (event) => {
+      this.forgotPasswordButton.addEventListener("click", (event) => {
         event.preventDefault();
-        await this.handleForgotPassword();
+        this.handleForgotPassword();
       });
     }
   },
 
   showLoginError(message) {
     if (!this.loginErrorBox) {
-      alert(message); // fallback simples
+      alert(message);
       return;
     }
 
@@ -242,7 +148,7 @@ const App = {
   },
 
   // =============================
-  // LOGIN (COM BYPASS ADMIN)
+  // LOGIN SIMPLIFICADO
   // =============================
   async handleLoginSubmit() {
     this.clearLoginError();
@@ -251,9 +157,13 @@ const App = {
     const password = (this.loginPasswordInput?.value || "").trim();
 
     if (!email || !password) {
-      this.showLoginError("Por favor, preencha e-mail e senha para entrar.");
+      const msg = "Por favor, preencha e-mail e senha para entrar.";
+      this.showLoginError(msg);
+      alert(msg);
       return;
     }
+
+    console.log("Tentando login com:", email);
 
     // Desabilita o botão enquanto faz o login
     if (this.loginButton) {
@@ -267,9 +177,14 @@ const App = {
         password,
       });
 
+      console.log("Resposta do Supabase:", { data, error });
+
       if (error) {
-        console.error("Erro no login:", error.message);
-        this.showLoginError("E-mail ou senha inválidos. Tente novamente.");
+        console.error("Erro no login:", error);
+        const msg =
+          "E-mail ou senha inválidos. Verifique os dados e tente novamente.";
+        this.showLoginError(msg);
+        alert(msg);
         return;
       }
 
@@ -277,59 +192,17 @@ const App = {
       this.state.user = user;
       this.state.isAuthenticated = true;
 
-      console.log("Usuário logado:", user.email);
-      console.log("app_metadata recebido:", user.app_metadata);
+      console.log("Login OK para:", user.email);
 
-      // BYPASS PARA ADMIN
-      const appMeta = user.app_metadata || {};
-      const isAdmin =
-        appMeta.role === "admin" || appMeta.is_admin === true;
-
-      if (isAdmin) {
-        console.log(
-          "Login ADMIN bem-sucedido. Pulando validação de user_access e redirecionando para o dashboard..."
-        );
-        navigateTo("dashboard.html");
-        return;
-      }
-
-      // Fluxo normal para usuários comuns (com tabela user_access)
-      await this.loadUserAccess(user);
-      console.log("Registro em user_access:", this.state.access);
-
-      if (this.isAccessExpired()) {
-        // Se acesso estiver expirado ou não cadastrado
-        await supabase.auth.signOut();
-        this.state.user = null;
-        this.state.isAuthenticated = false;
-        this.state.access = null;
-
-        this.showLoginError(
-          "Seu acesso ao Vine Tech está expirado ou ainda não foi liberado. " +
-            "Verifique sua assinatura ou fale com o suporte."
-        );
-        return;
-      }
-
-      // Acesso ativo — decide para onde mandar
-      const access = this.state.access;
-
-      if (access && access.first_login) {
-        console.log(
-          "Primeiro acesso detectado. Redirecionando para o dashboard..."
-        );
-        navigateTo("dashboard.html");
-      } else {
-        console.log(
-          "Login bem-sucedido. Redirecionando para o dashboard..."
-        );
-        navigateTo("dashboard.html");
-      }
+      alert("Login realizado com sucesso! Redirecionando para o painel.");
+      // 👉 Aqui já vamos direto para o DASHBOARD
+      navigateTo("dashboard.html");
     } catch (err) {
       console.error("Erro inesperado no login:", err);
-      this.showLoginError(formatErrorMessage(err));
+      const msg = formatErrorMessage(err);
+      this.showLoginError(msg);
+      alert("Erro inesperado: " + msg);
     } finally {
-      // Restaura o botão
       if (this.loginButton) {
         this.loginButton.disabled = false;
         this.loginButton.textContent = "Entrar";
@@ -337,20 +210,23 @@ const App = {
     }
   },
 
+  // =============================
+  // ESQUECI MINHA SENHA
+  // =============================
   async handleForgotPassword() {
     this.clearLoginError();
 
     const email = (this.loginEmailInput?.value || "").trim();
 
     if (!email) {
-      this.showLoginError(
-        "Por favor, informe o e-mail usado no cadastro para recuperar a senha."
-      );
+      const msg =
+        "Por favor, informe o e-mail usado no cadastro para recuperar a senha.";
+      this.showLoginError(msg);
+      alert(msg);
       return;
     }
 
     try {
-      // URL fixa configurada na Supabase (GitHub Pages)
       const redirectTo =
         "https://rafaelrodrigues-casse.github.io/gestor-trafego-app/reset-password.html";
 
@@ -359,37 +235,34 @@ const App = {
       });
 
       if (error) {
-        console.error("Erro ao enviar e-mail de redefinição:", error.message);
-        this.showLoginError(
-          "Não foi possível enviar o e-mail de redefinição. Tente novamente em alguns instantes."
-        );
+        console.error("Erro ao enviar e-mail de redefinição:", error);
+        const msg =
+          "Não foi possível enviar o e-mail de redefinição. Tente novamente em alguns instantes.";
+        this.showLoginError(msg);
+        alert(msg);
         return;
       }
 
-      this.showLoginError(
+      const msg =
         "Enviamos um link de redefinição de senha para o seu e-mail. " +
-          "Verifique sua caixa de entrada e o spam."
-      );
+        "Verifique sua caixa de entrada e o spam.";
+      this.showLoginError(msg);
+      alert(msg);
     } catch (err) {
       console.error("Erro inesperado em handleForgotPassword:", err);
-      this.showLoginError(formatErrorMessage(err));
+      const msg = formatErrorMessage(err);
+      this.showLoginError(msg);
+      alert("Erro inesperado: " + msg);
     }
   },
 
   // =============================
-  // MÉTODOS PÚBLICOS ADICIONAIS
+  // LOGOUT (para usar no futuro)
   // =============================
-  async login(email, password) {
-    // Mantém a função pública para uso futuro,
-    // mas agora o fluxo principal está em handleLoginSubmit.
-    return supabase.auth.signInWithPassword({ email, password });
-  },
-
   async logout() {
     await supabase.auth.signOut();
     this.state.user = null;
     this.state.isAuthenticated = false;
-    this.state.access = null;
     navigateTo("login.html");
   },
 };
