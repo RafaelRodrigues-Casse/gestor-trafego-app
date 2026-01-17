@@ -2,34 +2,60 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Vine Tech – Gestores de Tráfego</title>
+  <title>Vine Tech – Gestão Inteligente para Gestores de Tráfego</title>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Vine Tech – Aplicativo profissional para gestores de tráfego pago, com diagnósticos inteligentes, estratégia e excelência. Tudo em um só lugar." />
+
+  <!-- SEO básico -->
+  <meta name="author" content="Vine Tech" />
+  <meta name="theme-color" content="#020617" />
+
+  <!-- Open Graph (compartilhamento em redes sociais) -->
+  <meta property="og:title" content="Vine Tech – Gestores de Tráfego" />
+  <meta property="og:description" content="Gestão de tráfego com estrutura, estratégia e excelência para gestores de tráfego pago." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rafaelrodrigues-casse.github.io/gestor-trafego-app/" />
 
   <!-- CSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 
 <body>
-
   <!-- HEADER / TOPO DO APP -->
   <header class="app-header">
-    <h1 class="logo">Vine Tech</h1>
-    <nav class="app-nav">
-      <!-- Navegação futura -->
-      <!-- Login | Dashboard | Perfil -->
-    </nav>
+    <div class="header-inner">
+      <h1 class="logo">Vine Tech</h1>
+
+      <nav class="app-nav">
+        <a href="login.html" class="nav-link">Entrar</a>
+        <!-- Links futuros: Dashboard, Perfil, etc. -->
+      </nav>
+    </div>
   </header>
 
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="app-main">
-
     <!-- SEÇÃO HERO / APRESENTAÇÃO -->
     <section class="hero">
-      <h2>Gestão de Tráfego com Estrutura, Estratégia e Excelência</h2>
-      <p>
-        Aplicativo profissional para gestores de tráfego pago.<br />
-        Tudo em um só lugar, com visão, método e precisão.
-      </p>
+      <div class="hero-content">
+        <h2>Gestão de Tráfego com Estrutura, Estratégia e Excelência</h2>
+        <p>
+          Aplicativo profissional para gestores de tráfego pago.<br />
+          Tudo em um só lugar, com visão, método e precisão.
+        </p>
+
+        <div class="hero-actions">
+          <a href="login.html" class="btn-primary">
+            Entrar no Vine Tech
+          </a>
+          <!-- Botão futuro, exemplo:
+          <a href="#modulos" class="btn-secondary">
+            Ver módulos em desenvolvimento
+          </a>
+          -->
+        </div>
+      </div>
     </section>
 
     <!-- SEÇÃO MVP / STATUS -->
@@ -45,7 +71,7 @@
     </section>
 
     <!-- SEÇÕES FUTURAS (PLACEHOLDERS) -->
-    <section class="future">
+    <section class="future" id="modulos">
       <h3>Módulos em desenvolvimento</h3>
       <ul>
         <li>📊 Dashboard do Gestor</li>
@@ -54,7 +80,6 @@
         <li>📈 Relatórios e Performance</li>
       </ul>
     </section>
-
   </main>
 
   <!-- FOOTER -->
@@ -62,10 +87,10 @@
     <p>© Vine Tech — Todos os direitos reservados</p>
   </footer>
 
-  <!-- Supabase SDK (versão atual) -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- Supabase SDK (mesmo CDN usado no login) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- App JS -->
+  <!-- App JS principal -->
   <script src="js/main.js"></script>
 </body>
 </html>
