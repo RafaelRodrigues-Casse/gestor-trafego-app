@@ -30,7 +30,7 @@
       color: var(--vt-text);
     }
 
-    /* HEADER / NAV */
+    /* HEADER */
     header {
       background: var(--vt-header-bg);
       color: var(--vt-header-text);
@@ -40,80 +40,53 @@
       justify-content: space-between;
     }
 
-    .logo {
+    header h1 {
       margin: 0;
       font-size: 18px;
-      font-weight: bold;
     }
 
-    .top-nav {
+    .header-right {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
       align-items: center;
+      gap: 8px;
     }
 
-    .top-nav a {
-      color: #cbd5f5;
-      text-decoration: none;
-      font-size: 13px;
-      padding: 4px 8px;
+    .back-link {
+      padding: 6px 12px;
       border-radius: 999px;
-      border: 1px solid transparent;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+      text-decoration: none;
+      cursor: pointer;
     }
 
-    .top-nav a:hover {
-      border-color: rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.6);
-    }
-
-    .top-nav .nav-current {
-      background: #1d4ed8;
-      color: #ffffff;
-      border-color: #1d4ed8;
+    .back-link:hover {
+      background: #111827;
     }
 
     main {
-      max-width: 900px;
-      margin: 32px auto 40px;
-      padding: 0 16px;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
     }
 
     .upload-card {
       background: var(--vt-surface);
       border-radius: 12px;
       padding: 24px 24px 28px;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
-    }
-
-    .card-header-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .back-btn {
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--vt-border);
-      background: #ffffff;
-      color: #111827;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    .back-btn:hover {
-      background: #f3f4f6;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     }
 
     .upload-card h2 {
-      margin: 0;
+      margin-top: 0;
+      margin-bottom: 4px;
       font-size: 20px;
     }
 
     .upload-card p.subtitle {
-      margin-top: 4px;
+      margin-top: 0;
       margin-bottom: 20px;
       color: var(--vt-muted);
       font-size: 14px;
@@ -149,7 +122,7 @@
     }
 
     .actions {
-      margin-top: 20px;
+      margin-top: 24px;
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
@@ -234,32 +207,23 @@
 <body>
 
   <header>
-    <h1 class="logo">Vine Tech</h1>
-    <nav class="top-nav">
-      <a href="index.html#dashboard">Menu principal</a>
-      <a href="index.html#projectDiagnostics">Diagnóstico de campanhas</a>
-      <a href="#" title="Em breve">Meu perfil</a>
-      <a href="#" title="Em breve">Suporte</a>
-      <a href="#" title="Em breve">Configurações</a>
-      <a href="image-analysis.html" class="nav-current">Análise de criativos</a>
-    </nav>
+    <h1>Vine Tech — Análise de Criativos</h1>
+    <div class="header-right">
+      <a
+        id="backBtn"
+        class="back-link"
+        href="index.html#projectDiagnostics"
+      >
+        ← Voltar
+      </a>
+    </div>
   </header>
 
   <main>
     <div class="upload-card">
-      <div class="card-header-row">
-        <button
-          type="button"
-          class="back-btn"
-          onclick="window.location.href='index.html#projectDiagnostics';"
-        >
-          ← Voltar
-        </button>
-        <h2>Enviar imagem para análise</h2>
-      </div>
-
+      <h2>Enviar imagem para análise</h2>
       <p class="subtitle">
-        Faça upload de um print de campanha para receber um diagnóstico estratégico da IA (versão MVP).
+        Faça upload de um print de campanha para receber um diagnóstico estratégico da IA (MVP).
       </p>
 
       <!-- Área de Drag & Drop -->
@@ -305,7 +269,6 @@ Nenhuma análise gerada ainda. Envie um print e clique em “Analisar imagem”.
     © Vine Tech — MVP em construção
   </footer>
 
-  <!-- Script da página -->
   <script>
     const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
@@ -322,7 +285,7 @@ Nenhuma análise gerada ainda. Envie um print e clique em “Analisar imagem”.
       fileInput.click();
     });
 
-    // Drag over
+    // Drag & drop
     dropZone.addEventListener("dragover", (e) => {
       e.preventDefault();
       dropZone.classList.add("dragover");
@@ -390,7 +353,7 @@ Nenhuma análise gerada ainda. Envie um print e clique em “Analisar imagem”.
 - Tamanho aproximado: ${sizeKB} KB
 
 🎯 Leitura estratégica (simulação):
-- Este módulo do Vine Tech foi pensado para ler prints reais do Gerenciador de Anúncios (Meta, Google, etc.) e transformar em diagnóstico tático.
+- Este módulo do Vine Tech foi pensado para ler prints reais do Gerenciador de Anúncios e transformar em diagnóstico tático.
 - Na versão atual (MVP), estamos estruturando o fluxo de trabalho e o formato do relatório que a IA completa irá gerar.
 
 ✅ O que o diagnóstico completo fará (quando conectado à IA real):
@@ -403,11 +366,11 @@ Nenhuma análise gerada ainda. Envie um print e clique em “Analisar imagem”.
 1. Use este print como parte do histórico do projeto dentro do módulo "Gestão de Projetos & Diagnóstico de Campanhas".
 2. Registre, no Vine Tech, o objetivo da campanha, estágio de funil e verba diária.
 3. A partir dos números do gerenciador, aplique o método:
-   - Proteja o caixa (cortar o que sangra dinheiro).
-   - Preserve o que funciona (campanhas com melhor ROAS).
-   - Teste com propósito (criativos e promessas com hipóteses claras).
+   - Proteger o caixa (cortar o que sangra dinheiro).
+   - Preservar o que funciona (campanhas com melhor ROAS).
+   - Testar com propósito (criativos e promessas com hipóteses claras).
 
-Em breve, o Vine Tech conectará esta etapa a um modelo de IA capaz de ler o print e devolver um diagnóstico profundamente detalhado, fazendo desta aba um verdadeiro “divisor de águas” na rotina do gestor de tráfego.
+Em breve, o Vine Tech conectará esta etapa a um modelo de IA capaz de ler o print e devolver um diagnóstico profundamente detalhado.
       `.trim();
 
       resultBox.textContent = "";
