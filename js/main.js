@@ -1,6 +1,6 @@
 /**
  * Vine Tech App
- * main.js — Login + Dashboard do Gestor
+ * main.js — Login + Dashboard do Gestor + Projetos Ativos (estrutura de dados)
  * Versão com DEBUG forte para garantir funcionamento
  */
 
@@ -40,15 +40,96 @@ function formatErrorMessage(error) {
 }
 
 // =============================
-// DASHBOARD DO GESTOR – ESTADO E FUNÇÕES
+// DASHBOARD DO GESTOR – ESTADO, ESTRUTURA DE PROJETOS E FUNÇÕES
 // =============================
 
-// Estado base do Dashboard (depois vamos alimentar com dados reais)
+// Tipos de cliente
+const VINE_TECH_CLIENT_TYPES = {
+  COMPANY: "company",           // Empresas / Companies
+  ENTREPRENEUR: "entrepreneur", // Empreendedores
+};
+
+// Status do projeto
+const VINE_TECH_PROJECT_STATUS = {
+  ACTIVE: "active",
+  PAUSED: "paused",
+  CLOSED: "closed",
+};
+
+// Array de projetos ativos (simulação em memória por enquanto)
+// 👉 Depois vamos trocar isso por dados vindos do Supabase.
+let vineTechProjects = [
+  {
+    id: "prj_001",
+    clientType: VINE_TECH_CLIENT_TYPES.COMPANY,
+    clientName: "Loja Exemplo LTDA",
+    brandName: "Loja Exemplo",
+    mainOffer: "Lançamento de Coleção Outono",
+    niche: "E-commerce de moda",
+    platforms: ["facebook_ads", "instagram_ads"],
+    status: VINE_TECH_PROJECT_STATUS.ACTIVE,
+    budgetMonth: 8000,
+    createdAt: "2025-01-10T12:00:00.000Z",
+    closedAt: null,
+    performance: {
+      roas: 3.2,
+      cpl: 11.5,
+      spend: 6000,
+      revenue: 19200,
+      leads: 520,
+      activeCampaignsCount: 5,
+    },
+  },
+  {
+    id: "prj_002",
+    clientType: VINE_TECH_CLIENT_TYPES.ENTREPRENEUR,
+    clientName: "Rafael – Consultoria Local",
+    brandName: "Consultoria Local",
+    mainOffer: "Mentoria de Tráfego para Negócios Locais",
+    niche: "Serviços locais",
+    platforms: ["facebook_ads", "google_ads"],
+    status: VINE_TECH_PROJECT_STATUS.ACTIVE,
+    budgetMonth: 3000,
+    createdAt: "2025-01-15T09:30:00.000Z",
+    closedAt: null,
+    performance: {
+      roas: 2.4,
+      cpl: 18.9,
+      spend: 2200,
+      revenue: 5280,
+      leads: 116,
+      activeCampaignsCount: 3,
+    },
+  },
+  {
+    id: "prj_003",
+    clientType: VINE_TECH_CLIENT_TYPES.ENTREPRENEUR,
+    clientName: "Maria – Infoprodutora",
+    brandName: "Método Social Pro",
+    mainOffer: "Treinamento online",
+    niche: "Infoproduto",
+    platforms: ["instagram_ads"],
+    status: VINE_TECH_PROJECT_STATUS.PAUSED,
+    budgetMonth: 2000,
+    createdAt: "2025-01-05T18:00:00.000Z",
+    closedAt: null,
+    performance: {
+      roas: 0,
+      cpl: 0,
+      spend: 0,
+      revenue: 0,
+      leads: 0,
+      activeCampaignsCount: 0,
+    },
+  },
+];
+
+// Estado base do Dashboard (alimentado pelos projetos)
 const vineTechDashboardState = {
-  companies: 0,        // Empresas / Companies
-  entrepreneurs: 0,    // Empreendedores
-  activeProjects: 0,   // Ativos em andamento
-  activeCampaigns: 0,  // Campanhas ativas
+  companies: 0,        // Empresas / Companies ativas
+  entrepreneurs: 0,    // Empreendedores ativos
+  activeProjects: 0,   // Projetos ativos em andamento
+  activeCampaigns: 0,  // Campanhas ativas (somatório)
   avgROAS: 0,          // ROAS médio
   avgCPL: 0,           // CPL médio (em R$)
   lastDiagnosis: "",   // Último diagnóstico gerado pela IA
@@ -56,24 +137,24 @@ const vineTechDashboardState = {
   accountStatus: {
     active: true,
     planName: "Plano padrão",
-    message: "Conta ativa. Você pode trabalhar tranquilo hoje."
-  }
+    message: "Conta ativa. Você pode trabalhar tranquilo hoje.",
+  },
 };
 
 // Pequeno "banco" de versículos – ACF – para o Versículo Diário
 const vineTechVerses = [
   {
     text: "Tudo, porém, seja feito com decência e ordem.",
-    ref: "1 Coríntios 14:40 (ACF)"
+    ref: "1 Coríntios 14:40 (ACF)",
   },
   {
     text: "Não desprezeis o dia das pequenas coisas.",
-    ref: "Zacarias 4:10 (ACF)"
+    ref: "Zacarias 4:10 (ACF)",
   },
   {
     text: "Mas a vereda dos justos é como a luz da aurora, que vai brilhando mais e mais até ser dia perfeito.",
-    ref: "Provérbios 4:18 (ACF)"
-  }
+    ref: "Provérbios 4:18 (ACF)",
+  },
 ];
 
 function vineTechGetDailyVerse() {
@@ -82,27 +163,97 @@ function vineTechGetDailyVerse() {
   return vineTechVerses[index];
 }
 
+// Recalcula o estado do Dashboard com base nos projetos
+function vineTechRecalculateDashboardFromProjects() {
+  const activeProjects = vineTechProjects.filter(
+    (p) => p.status === VINE_TECH_PROJECT_STATUS.ACTIVE
+  );
+
+  vineTechDashboardState.activeProjects = activeProjects.length;
+
+  vineTechDashboardState.companies = activeProjects.filter(
+    (p) => p.clientType === VINE_TECH_CLIENT_TYPES.COMPANY
+  ).length;
+
+  vineTechDashboardState.entrepreneurs = activeProjects.filter(
+    (p) => p.clientType === VINE_TECH_CLIENT_TYPES.ENTREPRENEUR
+  ).length;
+
+  vineTechDashboardState.activeCampaigns = activeProjects.reduce(
+    (total, p) => total + (p.performance?.activeCampaignsCount || 0),
+    0
+  );
+
+  // ROAS e CPL médios
+  const projectsWithROAS = activeProjects.filter(
+    (p) => p.performance && p.performance.roas > 0
+  );
+  const projectsWithCPL = activeProjects.filter(
+    (p) => p.performance && p.performance.cpl > 0
+  );
+
+  if (projectsWithROAS.length > 0) {
+    const sumROAS = projectsWithROAS.reduce(
+      (sum, p) => sum + p.performance.roas,
+      0
+    );
+    vineTechDashboardState.avgROAS = sumROAS / projectsWithROAS.length;
+  } else {
+    vineTechDashboardState.avgROAS = 0;
+  }
+
+  if (projectsWithCPL.length > 0) {
+    const sumCPL = projectsWithCPL.reduce(
+      (sum, p) => sum + p.performance.cpl,
+      0
+    );
+    vineTechDashboardState.avgCPL = sumCPL / projectsWithCPL.length;
+  } else {
+    vineTechDashboardState.avgCPL = 0;
+  }
+}
+
 // Inicializa todos os campos do Dashboard
 function vineTechDashboardInit() {
   const dashboardEl = document.getElementById("dashboard");
   if (!dashboardEl) {
     // Não está na página que tem o Dashboard (por exemplo, login.html)
-    console.log("Dashboard não encontrado nesta página. Pulando inicialização do Dashboard.");
+    console.log(
+      "Dashboard não encontrado nesta página. Pulando inicialização do Dashboard."
+    );
     return;
   }
 
   console.log("Inicializando Dashboard do Gestor...");
 
-  // Métricas principais
+  // 1) recalcula o estado a partir dos projetos
+  vineTechRecalculateDashboardFromProjects();
+
+  // 2) aplica no HTML
   vineTechSetText("companiesCount", vineTechDashboardState.companies);
   vineTechSetText("entrepreneursCount", vineTechDashboardState.entrepreneurs);
 
-  vineTechSetText("activeProjectsCount", vineTechDashboardState.activeProjects);
-  vineTechSetText("activeProjectsCardCount", vineTechDashboardState.activeProjects);
+  vineTechSetText(
+    "activeProjectsCount",
+    vineTechDashboardState.activeProjects
+  );
+  vineTechSetText(
+    "activeProjectsCardCount",
+    vineTechDashboardState.activeProjects
+  );
 
-  vineTechSetText("activeCampaignsCount", vineTechDashboardState.activeCampaigns);
-  vineTechSetText("avgRoasValue", vineTechFormatNumber(vineTechDashboardState.avgROAS));
-  vineTechSetText("avgCplValue", vineTechFormatCurrency(vineTechDashboardState.avgCPL));
+  vineTechSetText(
+    "activeCampaignsCount",
+    vineTechDashboardState.activeCampaigns
+  );
+  vineTechSetText(
+    "avgRoasValue",
+    vineTechFormatNumber(vineTechDashboardState.avgROAS)
+  );
+  vineTechSetText(
+    "avgCplValue",
+    vineTechFormatCurrency(vineTechDashboardState.avgCPL)
+  );
 
   // Último diagnóstico
   if (vineTechDashboardState.lastDiagnosis) {
@@ -111,13 +262,17 @@ function vineTechDashboardInit() {
 
   // Próximos passos
   const nextStepsList = document.getElementById("nextStepsList");
-  if (nextStepsList && vineTechDashboardState.nextSteps.length > 0) {
-    nextStepsList.innerHTML = "";
-    vineTechDashboardState.nextSteps.forEach((step) => {
-      const li = document.createElement("li");
-      li.textContent = step;
-      nextStepsList.appendChild(li);
-    });
+  if (nextStepsList) {
+    if (vineTechDashboardState.nextSteps.length > 0) {
+      nextStepsList.innerHTML = "";
+      vineTechDashboardState.nextSteps.forEach((step) => {
+        const li = document.createElement("li");
+        li.textContent = step;
+        nextStepsList.appendChild(li);
+      });
+    } else {
+      // deixa o texto padrão do HTML se não tiver próximos passos
+    }
   }
 
   // Status da conta
@@ -154,8 +309,10 @@ function vineTechDashboardWireEvents() {
   const btnNewProject = document.getElementById("btnNewProject");
   if (btnNewProject) {
     btnNewProject.addEventListener("click", () => {
-      // TODO: integrar com fluxo real de criação de projeto
-      alert("Novo projeto: em breve este botão abrirá o fluxo de criação de projeto.");
+      // TODO: integrar com fluxo real de criação de projeto (ABA 2)
+      alert(
+        "Novo projeto: em breve este botão abrirá o fluxo de criação de projeto (ABA 2)."
+      );
     });
   }
 
@@ -163,11 +320,15 @@ function vineTechDashboardWireEvents() {
   if (btnCloseCampaign) {
     btnCloseCampaign.addEventListener("click", () => {
       // TODO: integrar com fluxo real de encerramento de campanha
-      alert("Encerrar campanha: em breve este botão listará campanhas para encerramento.");
+      alert(
+        "Encerrar campanha: em breve este botão listará campanhas para encerramento."
+      );
     });
   }
 
-  const btnQuickNewDiagnosis = document.getElementById("btnQuickNewDiagnosis");
+  const btnQuickNewDiagnosis = document.getElementById(
+    "btnQuickNewDiagnosis"
+  );
   if (btnQuickNewDiagnosis) {
     btnQuickNewDiagnosis.addEventListener("click", () => {
       // Aqui no futuro você chama a IA para gerar diagnóstico
@@ -175,7 +336,9 @@ function vineTechDashboardWireEvents() {
     });
   }
 
-  const btnQuickFunnelReview = document.getElementById("btnQuickFunnelReview");
+  const btnQuickFunnelReview = document.getElementById(
+    "btnQuickFunnelReview"
+  );
   if (btnQuickFunnelReview) {
     btnQuickFunnelReview.addEventListener("click", () => {
       alert("Revisão por funil: ação rápida para revisar etapa por etapa.");
@@ -185,14 +348,18 @@ function vineTechDashboardWireEvents() {
   const btnQuickOfferOrg = document.getElementById("btnQuickOfferOrg");
   if (btnQuickOfferOrg) {
     btnQuickOfferOrg.addEventListener("click", () => {
-      alert("Organização de ofertas: em breve este fluxo ajudará a organizar ofertas.");
+      alert(
+        "Organização de ofertas: em breve este fluxo ajudará a organizar ofertas."
+      );
     });
   }
 
   const btnQuickHistory = document.getElementById("btnQuickHistory");
   if (btnQuickHistory) {
     btnQuickHistory.addEventListener("click", () => {
-      alert("Histórico de decisões: aqui você verá as últimas decisões tomadas.");
+      alert(
+        "Histórico de decisões: aqui você verá as últimas decisões tomadas."
+      );
     });
   }
 }
@@ -226,8 +393,8 @@ function vineTechFormatCurrency(value) {
 // =============================
 
 document.addEventListener("DOMContentLoaded", () => {
-  alert("main.js carregado (Vine Tech v2)");
-  console.log("main.js carregado (Vine Tech v2)");
+  alert("main.js carregado (Vine Tech v2 + Dashboard + Projetos)");
+  console.log("main.js carregado (Vine Tech v2 + Dashboard + Projetos)");
 
   // garante que a biblioteca do Supabase existe
   if (!window.supabase) {
@@ -267,7 +434,9 @@ const App = {
       alert("Página de login detectada (init)");
       this.setupLoginPage();
     } else {
-      console.log("Não é página de login, App.init terminou (modo público / Dashboard).");
+      console.log(
+        "Não é página de login, App.init terminou (modo público / Dashboard)."
+      );
     }
   },
 
@@ -394,8 +563,8 @@ const App = {
 
       alert("Login OK para: " + user.email + " — redirecionando…");
 
-      // 👉 Depois podemos mudar para outro dashboard se quiser
-      navigateTo("dashboard.html");
+      // 👉 AGORA REDIRECIONA PARA O INDEX (que contém o Dashboard)
+      navigateTo("index.html");
     } catch (err) {
       console.error("Erro inesperado no login:", err);
       const msg = formatErrorMessage(err);
