@@ -49,11 +49,6 @@
           <a href="login.html" class="btn-primary">
             Entrar no Vine Tech
           </a>
-          <!-- Botão futuro, exemplo:
-          <a href="#modulos" class="btn-secondary">
-            Ver módulos em desenvolvimento
-          </a>
-          -->
         </div>
       </div>
     </section>
@@ -70,11 +65,164 @@
       </div>
     </section>
 
+    <!-- VINE TECH – DASHBOARD DO GESTOR – INÍCIO -->
+    <section id="dashboard" class="vt-section vt-dashboard">
+      <header class="vt-dashboard-header">
+        <h1>Dashboard do Gestor</h1>
+        <p class="vt-dashboard-subtitle">
+          Painel executivo de tráfego pago orientado à decisão. Resumo profissional do trabalho do gestor.
+        </p>
+      </header>
+
+      <div class="vt-dashboard-toolbar">
+        <div class="vt-dashboard-left">
+          <span class="vt-dashboard-label">Ativos em andamento</span>
+          <span id="activeProjectsCount" class="vt-dashboard-value">0</span>
+        </div>
+        <div class="vt-dashboard-right">
+          <button id="btnNewProject" class="vt-btn vt-btn-primary">+ Novo Projeto</button>
+          <button id="btnCloseCampaign" class="vt-btn vt-btn-danger">Encerrar Campanha</button>
+        </div>
+      </div>
+
+      <!-- Linha 1 – Empresas, Empreendedores, Ativos -->
+      <div class="vt-dashboard-grid">
+        <div class="vt-card">
+          <h2>Empresas / Companies</h2>
+          <p class="vt-card-desc">
+            Clientes empresariais de maior porte (CNPJ, múltiplas campanhas e operações de escala).
+          </p>
+          <div class="vt-card-metric">
+            <span id="companiesCount" class="vt-metric-value">0</span>
+            <span class="vt-metric-label">empresas ativas</span>
+          </div>
+        </div>
+
+        <div class="vt-card">
+          <h2>Empreendedores</h2>
+          <p class="vt-card-desc">
+            Projetos em fase de construção, validação ou crescimento inicial.
+          </p>
+          <div class="vt-card-metric">
+            <span id="entrepreneursCount" class="vt-metric-value">0</span>
+            <span class="vt-metric-label">projetos ativos</span>
+          </div>
+        </div>
+
+        <div class="vt-card">
+          <h2>Ativos em andamento</h2>
+          <p class="vt-card-desc">
+            Tudo o que você está gerenciando neste momento, sem perder nenhum projeto de vista.
+          </p>
+          <div class="vt-card-metric">
+            <span id="activeProjectsCardCount" class="vt-metric-value">0</span>
+            <span class="vt-metric-label">itens ativos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha 2 – Campanhas, ROAS, CPL -->
+      <div class="vt-dashboard-grid">
+        <div class="vt-card">
+          <h2>Campanhas ativas</h2>
+          <p class="vt-card-desc">Visão rápida da quantidade de campanhas em operação.</p>
+          <div class="vt-card-metric">
+            <span id="activeCampaignsCount" class="vt-metric-value">0</span>
+            <span class="vt-metric-label">campanhas</span>
+          </div>
+        </div>
+
+        <div class="vt-card">
+          <h2>ROAS médio</h2>
+          <p class="vt-card-desc">Estou retornando bem sobre o investimento?</p>
+          <div class="vt-card-metric">
+            <span id="avgRoasValue" class="vt-metric-value">0,00</span>
+            <span class="vt-metric-label">retorno sobre o anúncio</span>
+          </div>
+        </div>
+
+        <div class="vt-card">
+          <h2>CPL médio</h2>
+          <p class="vt-card-desc">Estou pagando caro por lead?</p>
+          <div class="vt-card-metric">
+            <span id="avgCplValue" class="vt-metric-value">0,00</span>
+            <span class="vt-metric-label">custo por lead</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Último diagnóstico + Próximos passos -->
+      <div class="vt-dashboard-two-columns">
+        <section class="vt-panel">
+          <header class="vt-panel-header">
+            <h2>Último diagnóstico (IA)</h2>
+            <span class="vt-panel-tag">Histórico decisório</span>
+          </header>
+          <p id="lastDiagnosisText" class="vt-panel-body">
+            Nenhum diagnóstico registrado ainda. Faça um novo diagnóstico para começar o histórico.
+          </p>
+        </section>
+
+        <section class="vt-panel">
+          <header class="vt-panel-header">
+            <h2>Próximos passos (IA)</h2>
+            <span class="vt-panel-tag">Orientação estratégica</span>
+          </header>
+          <ul id="nextStepsList" class="vt-list">
+            <li>Nenhum próximo passo definido ainda. Gere um diagnóstico para receber recomendações.</li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Ações rápidas + Status da conta -->
+      <div class="vt-dashboard-two-columns">
+        <section class="vt-panel">
+          <header class="vt-panel-header">
+            <h2>Ações rápidas</h2>
+            <span class="vt-panel-tag">FOCO em decisão</span>
+          </header>
+          <div class="vt-quick-actions">
+            <button id="btnQuickNewDiagnosis" class="vt-btn vt-btn-outline">Novo diagnóstico</button>
+            <button id="btnQuickFunnelReview" class="vt-btn vt-btn-outline">Revisão por funil</button>
+            <button id="btnQuickOfferOrg" class="vt-btn vt-btn-outline">Organização de ofertas</button>
+            <button id="btnQuickHistory" class="vt-btn vt-btn-outline">Histórico de decisões</button>
+          </div>
+        </section>
+
+        <section class="vt-panel">
+          <header class="vt-panel-header">
+            <h2>Status da conta</h2>
+            <span id="accountStatusBadge" class="vt-status-badge vt-status-ok">Ativo</span>
+          </header>
+          <p id="accountPlanText" class="vt-panel-body">
+            Plano não configurado.
+          </p>
+          <p id="accountStatusText" class="vt-panel-body-secondary">
+            Configure as informações da conta para garantir segurança operacional.
+          </p>
+        </section>
+      </div>
+
+      <!-- Versículo diário -->
+      <section class="vt-panel vt-panel-full">
+        <header class="vt-panel-header">
+          <h2>Versículo diário (ACF)</h2>
+          <span class="vt-panel-tag">Fundamento espiritual</span>
+        </header>
+        <p id="dailyVerseText" class="vt-verse-text">
+          “Tudo, porém, seja feito com decência e ordem.”
+        </p>
+        <p id="dailyVerseRef" class="vt-verse-ref">
+          1 Coríntios 14:40 (ACF)
+        </p>
+      </section>
+    </section>
+    <!-- VINE TECH – DASHBOARD DO GESTOR – FIM -->
+
     <!-- SEÇÕES FUTURAS (PLACEHOLDERS) -->
     <section class="future" id="modulos">
       <h3>Módulos em desenvolvimento</h3>
       <ul>
-        <li>📊 Dashboard do Gestor</li>
         <li>🔐 Autenticação segura</li>
         <li>⚙️ Configurações e Perfil</li>
         <li>📈 Relatórios e Performance</li>
