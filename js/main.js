@@ -1,6 +1,6 @@
 /**
  * Vine Tech App
- * main.js — Login + Dashboard do Gestor + Projetos Ativos (estrutura de dados)
+ * main.js — Login + Dashboard do Gestor + Projetos Ativos + Diagnóstico de Campanhas
  * Versão com DEBUG forte para garantir funcionamento
  */
 
@@ -45,7 +45,7 @@ function formatErrorMessage(error) {
 
 // Tipos de cliente
 const VINE_TECH_CLIENT_TYPES = {
-  COMPANY: "company",           // Empresas / Companies
+  COMPANY: "company", // Empresas / Companies
   ENTREPRENEUR: "entrepreneur", // Empreendedores
 };
 
@@ -126,14 +126,14 @@ let vineTechProjects = [
 
 // Estado base do Dashboard (alimentado pelos projetos)
 const vineTechDashboardState = {
-  companies: 0,        // Empresas / Companies ativas
-  entrepreneurs: 0,    // Empreendedores ativos
-  activeProjects: 0,   // Projetos ativos em andamento
-  activeCampaigns: 0,  // Campanhas ativas (somatório)
-  avgROAS: 0,          // ROAS médio
-  avgCPL: 0,           // CPL médio (em R$)
-  lastDiagnosis: "",   // Último diagnóstico gerado pela IA
-  nextSteps: [],       // Lista de próximos passos recomendados
+  companies: 0, // Empresas / Companies ativas
+  entrepreneurs: 0, // Empreendedores ativos
+  activeProjects: 0, // Projetos ativos em andamento
+  activeCampaigns: 0, // Campanhas ativas (somatório)
+  avgROAS: 0, // ROAS médio
+  avgCPL: 0, // CPL médio (em R$)
+  lastDiagnosis: "", // Último diagnóstico gerado pela IA
+  nextSteps: [], // Lista de próximos passos recomendados
   accountStatus: {
     active: true,
     planName: "Plano padrão",
@@ -389,12 +389,418 @@ function vineTechFormatCurrency(value) {
 }
 
 // =============================
+// ABA 2 – GESTÃO DE PROJETOS / DIAGNÓSTICO DE CAMPANHAS
+// =============================
+
+// Histórico em memória (depois podemos levar para Supabase)
+let vineTechDiagnosticsHistory = [];
+
+// Estado temporário do último diagnóstico gerado (IA + gestor)
+let vineTechCurrentDiagnosisDraft = null;
+
+function vineTechDiagnosticsInit() {
+  const sectionEl = document.getElementById("projectDiagnostics");
+  if (!sectionEl) {
+    console.log("ABA 2 – projectDiagnostics não encontrado. Pulando init.");
+    return;
+  }
+
+  console.log("Inicializando ABA 2 – Gestão de Projetos / Diagnóstico...");
+
+  const selectProject = document.getElementById("diagProjectSelect");
+  const filesInput = document.getElementById("diagFiles");
+
+  // Preenche combo de projetos com base em vineTechProjects
+  if (selectProject) {
+    selectProject.innerHTML =
+      '<option value="">Selecione um projeto ativo...</option>';
+
+    vineTechProjects.forEach((p) => {
+      if (p.status === VINE_TECH_PROJECT_STATUS.ACTIVE) {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = `${p.brandName} – ${p.clientName}`;
+        selectProject.appendChild(opt);
+      }
+    });
+  }
+
+  // Lista de arquivos (prints/criativos)
+  if (filesInput) {
+    filesInput.addEventListener("change", () => {
+      const listEl = document.getElementById("diagFilesList");
+      if (!listEl) return;
+
+      const files = Array.from(filesInput.files || []);
+      if (files.length === 0) {
+        listEl.innerHTML = "<li>Nenhum arquivo selecionado ainda.</li>";
+        return;
+      }
+
+      listEl.innerHTML = "";
+      files.forEach((file) => {
+        const li = document.createElement("li");
+        li.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+        listEl.appendChild(li);
+      });
+    });
+  }
+
+  // Renderiza histórico inicial (se houver)
+  vineTechDiagnosticsRenderHistory();
+}
+
+function vineTechDiagnosticsWireEvents() {
+  const sectionEl = document.getElementById("projectDiagnostics");
+  if (!sectionEl) return;
+
+  const selectProject = document.getElementById("diagProjectSelect");
+  const btnRunDiagnosis = document.getElementById("btnRunDiagnosis");
+  const btnSaveActionPlan = document.getElementById("btnSaveActionPlan");
+
+  if (selectProject) {
+    selectProject.addEventListener("change", () => {
+      const projectId = selectProject.value;
+      const project = vineTechProjects.find((p) => p.id === projectId);
+      vineTechDiagnosticsUpdateProjectSummary(project || null);
+    });
+  }
+
+  if (btnRunDiagnosis) {
+    btnRunDiagnosis.addEventListener("click", () => {
+      vineTechDiagnosticsHandleRunDiagnosis();
+    });
+  }
+
+  if (btnSaveActionPlan) {
+    btnSaveActionPlan.addEventListener("click", () => {
+      vineTechDiagnosticsHandleSavePlan();
+    });
+  }
+}
+
+// Atualiza informações do projeto selecionado
+function vineTechDiagnosticsUpdateProjectSummary(project) {
+  const clientTypeEl = document.getElementById("diagClientType");
+  const statusBadgeEl = document.getElementById("diagProjectStatusBadge");
+  const summaryEl = document.getElementById("diagProjectSummary");
+
+  if (!clientTypeEl || !statusBadgeEl || !summaryEl) return;
+
+  if (!project) {
+    clientTypeEl.textContent = "—";
+    statusBadgeEl.textContent = "—";
+    statusBadgeEl.className = "vt-status-badge vt-status-neutral";
+    summaryEl.textContent =
+      "Selecione um projeto para visualizar o contexto estratégico.";
+    return;
+  }
+
+  clientTypeEl.textContent =
+    project.clientType === VINE_TECH_CLIENT_TYPES.COMPANY
+      ? "Empresa / Company"
+      : "Empreendedor";
+
+  const statusMap = {
+    [VINE_TECH_PROJECT_STATUS.ACTIVE]: {
+      text: "Ativo",
+      cls: "vt-status-ok",
+    },
+    [VINE_TECH_PROJECT_STATUS.PAUSED]: {
+      text: "Pausado",
+      cls: "vt-status-warning",
+    },
+    [VINE_TECH_PROJECT_STATUS.CLOSED]: {
+      text: "Encerrado",
+      cls: "vt-status-critical",
+    },
+  };
+
+  const mapped = statusMap[project.status] || {
+    text: "Desconhecido",
+    cls: "vt-status-neutral",
+  };
+
+  statusBadgeEl.textContent = mapped.text;
+  statusBadgeEl.className = `vt-status-badge ${mapped.cls}`;
+
+  const perf = project.performance || {};
+  summaryEl.textContent = `
+Projeto: ${project.brandName} (${project.clientName}) · 
+ROAS: ${perf.roas || 0} · CPL: R$ ${perf.cpl || 0} · Campanhas ativas: ${
+    perf.activeCampaignsCount || 0
+  }`.trim();
+}
+
+// Coleta contexto da tela
+function vineTechDiagnosticsGatherContext() {
+  const selectProject = document.getElementById("diagProjectSelect");
+  const objectiveEl = document.getElementById("diagObjective");
+  const goalTypeEl = document.getElementById("diagGoalType");
+  const funnelStageEl = document.getElementById("diagFunnelStage");
+  const platformEl = document.getElementById("diagPlatform");
+  const runningDaysEl = document.getElementById("diagRunningDays");
+  const dailyBudgetEl = document.getElementById("diagDailyBudget");
+
+  const projectId = selectProject?.value || "";
+  const project = vineTechProjects.find((p) => p.id === projectId) || null;
+
+  return {
+    project,
+    objective: (objectiveEl?.value || "").trim(),
+    goalType: goalTypeEl?.value || "",
+    funnelStage: funnelStageEl?.value || "",
+    platform: platformEl?.value || "",
+    runningDays: Number(runningDaysEl?.value || 0),
+    dailyBudget: Number(dailyBudgetEl?.value || 0),
+  };
+}
+
+// Handler do botão "Solicitar diagnóstico"
+function vineTechDiagnosticsHandleRunDiagnosis() {
+  const ctx = vineTechDiagnosticsGatherContext();
+
+  if (!ctx.project) {
+    alert("Selecione um projeto antes de solicitar o diagnóstico.");
+    return;
+  }
+
+  if (!ctx.goalType || !ctx.funnelStage || !ctx.platform) {
+    alert(
+      "Preencha pelo menos o objetivo principal, estágio de funil e plataforma antes de solicitar o diagnóstico."
+    );
+    return;
+  }
+
+  // Aqui entra a "IA" – por enquanto, lógica estratégica de exemplo,
+  // depois podemos trocar por chamada a API com modelo de IA real.
+  const result = vineTechDiagnosticsRunSimpleAI(ctx);
+
+  vineTechCurrentDiagnosisDraft = result;
+  vineTechDiagnosticsApplyResultToUI(result);
+}
+
+// Diagnóstico "IA" simples (regra estratégica baseada em dados)
+function vineTechDiagnosticsRunSimpleAI(ctx) {
+  const project = ctx.project;
+  const perf = project.performance || {};
+  const roas = perf.roas || 0;
+  const cpl = perf.cpl || 0;
+  const campaigns = perf.activeCampaignsCount || 0;
+
+  let health = "attention"; // healthy, attention, critical, test
+  let healthLabel = "Atenção";
+  let healthClass = "vt-status-warning";
+  const insights = [];
+  const actions = [];
+
+  // Heurísticas simples – depois podemos sofisticar
+  if (roas >= 3 && cpl > 0 && cpl <= 15) {
+    health = "healthy";
+    healthLabel = "Saudável";
+    healthClass = "vt-status-ok";
+    insights.push(
+      "O projeto apresenta bom ROAS e CPL dentro de uma faixa saudável. A prioridade é manter consistência e, se possível, testar escala controlada."
+    );
+    actions.push(
+      "Escalar gradualmente a verba nas campanhas com melhor desempenho.",
+      "Registrar público e criativos vencedores para proteção estratégica.",
+      "Monitorar diariamente variações bruscas de CPL ou ROAS."
+    );
+  } else if (roas < 1 || cpl >= 40) {
+    health = "critical";
+    healthLabel = "Crítico";
+    healthClass = "vt-status-critical";
+    insights.push(
+      "Os indicadores apontam risco financeiro alto. O projeto está em zona crítica e pode estar destruindo margem ou trabalhando no prejuízo."
+    );
+    actions.push(
+      "Pausar de imediato os conjuntos/campanhas com pior desempenho.",
+      "Rever promessa, público e oferta antes de seguir investindo.",
+      "Redirecionar verba para testes controlados com hipóteses claras."
+    );
+  } else {
+    health = "attention";
+    healthLabel = "Atenção";
+    healthClass = "vt-status-warning";
+    insights.push(
+      "O projeto não está em colapso, mas os indicadores não permitem conforto. É necessário ajuste fino antes de pensar em escala."
+    );
+    actions.push(
+      "Analisar criativos individualmente (CTR, CPC, engajamento).",
+      "Rever segmentação e alinhamento entre promessa e público.",
+      "Ajustar verba diária para proteger o caixa enquanto otimiza."
+    );
+  }
+
+  if (campaigns === 0) {
+    insights.push(
+      "Não há campanhas ativas neste projeto. Sem tráfego ativo, não há dados reais para tomada de decisão."
+    );
+    actions.push(
+      "Validar se o projeto está realmente em pausa ou se houve erro operacional.",
+      "Criar pelo menos uma campanha de teste alinhada ao objetivo principal."
+    );
+  }
+
+  if (ctx.runningDays > 0 && ctx.runningDays < 3) {
+    insights.push(
+      "A campanha está rodando há poucos dias. Qualquer diagnóstico deve ser feito com cautela, priorizando aprendizado, não conclusões definitivas."
+    );
+  }
+
+  const iaText = `
+📌 Diagnóstico do projeto: ${project.brandName}
+
+🎯 Objetivo principal: ${
+    ctx.objective || "não informado em detalhes"
+  } (${ctx.goalType || "tipo de objetivo não informado"})
+
+📊 Leitura rápida dos indicadores atuais:
+- ROAS: ${roas || 0}
+- CPL: R$ ${cpl || 0}
+- Campanhas ativas: ${campaigns}
+- Tempo de veiculação informado: ${ctx.runningDays || 0} dias
+- Verba média diária aproximada: R$ ${ctx.dailyBudget || 0}
+
+🧠 Análise estratégica (IA):
+- ${insights.join("\n- ")}
+`.trim();
+
+  const planText = `
+✅ Plano de ação recomendado (IA):
+
+- ${actions.join("\n- ")}
+
+Lembre-se: adapte o plano à realidade do cliente, do nicho e da verba disponível. O Vine Tech foi feito para te dar direção, não para substituir sua responsabilidade como gestor.
+`.trim();
+
+  const healthSummary = `
+Classificação: ${healthLabel}
+
+Resumo:
+${insights.join("\n")}
+`.trim();
+
+  return {
+    projectId: project.id,
+    createdAt: new Date().toISOString(),
+    health,
+    healthLabel,
+    healthClass,
+    iaText,
+    planText,
+    healthSummary,
+    context: ctx,
+  };
+}
+
+// Aplica resultado da "IA" na interface
+function vineTechDiagnosticsApplyResultToUI(result) {
+  const iaBox = document.getElementById("diagIaResult");
+  const planBox = document.getElementById("diagIaPlan");
+  const healthBadge = document.getElementById("diagHealthBadge");
+  const healthSummaryEl = document.getElementById("diagHealthSummary");
+
+  if (iaBox) {
+    iaBox.textContent = "";
+    iaBox.innerText = result.iaText;
+  }
+
+  if (planBox) {
+    planBox.textContent = "";
+    planBox.innerText = result.planText;
+  }
+
+  if (healthBadge) {
+    healthBadge.textContent = result.healthLabel;
+    healthBadge.className = `vt-status-badge ${result.healthClass}`;
+  }
+
+  if (healthSummaryEl) {
+    healthSummaryEl.textContent = result.healthSummary;
+  }
+}
+
+// Salva plano de ação no histórico
+function vineTechDiagnosticsHandleSavePlan() {
+  if (!vineTechCurrentDiagnosisDraft) {
+    alert(
+      "Gere um diagnóstico primeiro antes de salvar o plano de ação no histórico."
+    );
+    return;
+  }
+
+  const notesEl = document.getElementById("diagManagerNotes");
+  const notes = (notesEl?.value || "").trim();
+
+  const entry = {
+    ...vineTechCurrentDiagnosisDraft,
+    managerNotes: notes,
+    savedAt: new Date().toISOString(),
+  };
+
+  vineTechDiagnosticsHistory.unshift(entry);
+  vineTechDiagnosticsRenderHistory();
+
+  alert("Plano de ação salvo no histórico deste navegador (sessão atual).");
+
+  // Opcional: limpar campo de notas
+  if (notesEl) {
+    notesEl.value = "";
+  }
+}
+
+// Renderiza histórico na lista
+function vineTechDiagnosticsRenderHistory() {
+  const listEl = document.getElementById("diagHistoryList");
+  if (!listEl) return;
+
+  if (!vineTechDiagnosticsHistory.length) {
+    listEl.innerHTML =
+      "<li>Nenhum diagnóstico registrado ainda. Salve um plano de ação para iniciar o histórico.</li>";
+    return;
+  }
+
+  listEl.innerHTML = "";
+  vineTechDiagnosticsHistory.forEach((entry) => {
+    const li = document.createElement("li");
+    const date = new Date(entry.savedAt || entry.createdAt);
+    const project =
+      vineTechProjects.find((p) => p.id === entry.projectId) || null;
+
+    li.innerHTML = `
+<strong>${project ? project.brandName : "Projeto desconhecido"}</strong><br />
+<span class="vt-small-text">
+  Status: ${entry.healthLabel} · 
+  Data: ${date.toLocaleString("pt-BR")}
+</span><br />
+<span class="vt-small-text">
+  Objetivo: ${entry.context.objective || "não informado"}
+</span><br />
+<span class="vt-small-text">
+  Decisão do gestor: ${
+    entry.managerNotes || "nenhuma decisão registrada"
+  }
+</span>
+    `.trim();
+
+    li;
+    listEl.appendChild(li);
+  });
+}
+
+// =============================
 // APLICAÇÃO
 // =============================
 
 document.addEventListener("DOMContentLoaded", () => {
-  alert("main.js carregado (Vine Tech v2 + Dashboard + Projetos)");
-  console.log("main.js carregado (Vine Tech v2 + Dashboard + Projetos)");
+  alert(
+    "main.js carregado (Vine Tech v2 + Dashboard + Projetos + Diagnóstico)"
+  );
+  console.log(
+    "main.js carregado (Vine Tech v2 + Dashboard + Projetos + Diagnóstico)"
+  );
 
   // garante que a biblioteca do Supabase existe
   if (!window.supabase) {
@@ -416,9 +822,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Inicializa aplicação base (login etc.)
   App.init();
 
-  // Inicializa Dashboard (se o elemento existir na página)
+  // ABA 1 – Dashboard
   vineTechDashboardInit();
   vineTechDashboardWireEvents();
+
+  // ABA 2 – Gestão de Projetos / Diagnóstico de Campanhas
+  vineTechDiagnosticsInit();
+  vineTechDiagnosticsWireEvents();
 });
 
 const App = {
