@@ -27,9 +27,14 @@
     <div class="header-inner">
       <h1 class="logo">Vine Tech</h1>
 
+      <!-- MENU SUPERIOR / SUBMENUS -->
       <nav class="app-nav">
-        <a href="login.html" class="nav-link">Entrar</a>
-        <!-- Links futuros: Dashboard, Perfil, etc. -->
+        <a href="index.html#dashboard" class="nav-link">Menu principal</a>
+        <a href="index.html#projectDiagnostics" class="nav-link">Diagnóstico de campanhas</a>
+        <a href="#" class="nav-link">Meu perfil</a>
+        <a href="#" class="nav-link">Suporte</a>
+        <a href="#" class="nav-link">Configurações</a>
+        <a href="login.html" class="nav-link nav-link-highlight">Entrar</a>
       </nav>
     </div>
   </header>
@@ -222,6 +227,15 @@
     <!-- VINE TECH – ABA 2 – GESTÃO DE PROJETOS / DIAGNÓSTICO DE CAMPANHAS – INÍCIO -->
     <section id="projectDiagnostics" class="vt-section vt-projects">
       <header class="vt-section-header">
+        <!-- BOTÃO VOLTAR PARA O DASHBOARD -->
+        <button
+          type="button"
+          class="vt-btn vt-btn-outline vt-back-btn"
+          onclick="document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });"
+        >
+          ← Voltar
+        </button>
+
         <h2>Gestão de Projetos & Diagnóstico de Campanhas</h2>
         <p class="vt-section-subtitle">
           Sistema técnico, estratégico e histórico para diagnóstico profundo de campanhas de tráfego pago.
