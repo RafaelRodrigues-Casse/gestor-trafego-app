@@ -1,6 +1,6 @@
 /**
  * Vine Tech App
- * main.js — Login simples + Redirecionamento para Dashboard
+ * main.js — Login + Dashboard do Gestor
  * Versão com DEBUG forte para garantir funcionamento
  */
 
@@ -15,7 +15,7 @@ const SUPABASE_PUBLISHABLE_KEY =
 let supabaseClient = null;
 
 // =============================
-// HELPERS
+// HELPERS GERAIS
 // =============================
 
 function isLoginPage() {
@@ -40,6 +40,188 @@ function formatErrorMessage(error) {
 }
 
 // =============================
+// DASHBOARD DO GESTOR – ESTADO E FUNÇÕES
+// =============================
+
+// Estado base do Dashboard (depois vamos alimentar com dados reais)
+const vineTechDashboardState = {
+  companies: 0,        // Empresas / Companies
+  entrepreneurs: 0,    // Empreendedores
+  activeProjects: 0,   // Ativos em andamento
+  activeCampaigns: 0,  // Campanhas ativas
+  avgROAS: 0,          // ROAS médio
+  avgCPL: 0,           // CPL médio (em R$)
+  lastDiagnosis: "",   // Último diagnóstico gerado pela IA
+  nextSteps: [],       // Lista de próximos passos recomendados
+  accountStatus: {
+    active: true,
+    planName: "Plano padrão",
+    message: "Conta ativa. Você pode trabalhar tranquilo hoje."
+  }
+};
+
+// Pequeno "banco" de versículos – ACF – para o Versículo Diário
+const vineTechVerses = [
+  {
+    text: "Tudo, porém, seja feito com decência e ordem.",
+    ref: "1 Coríntios 14:40 (ACF)"
+  },
+  {
+    text: "Não desprezeis o dia das pequenas coisas.",
+    ref: "Zacarias 4:10 (ACF)"
+  },
+  {
+    text: "Mas a vereda dos justos é como a luz da aurora, que vai brilhando mais e mais até ser dia perfeito.",
+    ref: "Provérbios 4:18 (ACF)"
+  }
+];
+
+function vineTechGetDailyVerse() {
+  const today = new Date();
+  const index = today.getDate() % vineTechVerses.length;
+  return vineTechVerses[index];
+}
+
+// Inicializa todos os campos do Dashboard
+function vineTechDashboardInit() {
+  const dashboardEl = document.getElementById("dashboard");
+  if (!dashboardEl) {
+    // Não está na página que tem o Dashboard (por exemplo, login.html)
+    console.log("Dashboard não encontrado nesta página. Pulando inicialização do Dashboard.");
+    return;
+  }
+
+  console.log("Inicializando Dashboard do Gestor...");
+
+  // Métricas principais
+  vineTechSetText("companiesCount", vineTechDashboardState.companies);
+  vineTechSetText("entrepreneursCount", vineTechDashboardState.entrepreneurs);
+
+  vineTechSetText("activeProjectsCount", vineTechDashboardState.activeProjects);
+  vineTechSetText("activeProjectsCardCount", vineTechDashboardState.activeProjects);
+
+  vineTechSetText("activeCampaignsCount", vineTechDashboardState.activeCampaigns);
+  vineTechSetText("avgRoasValue", vineTechFormatNumber(vineTechDashboardState.avgROAS));
+  vineTechSetText("avgCplValue", vineTechFormatCurrency(vineTechDashboardState.avgCPL));
+
+  // Último diagnóstico
+  if (vineTechDashboardState.lastDiagnosis) {
+    vineTechSetText("lastDiagnosisText", vineTechDashboardState.lastDiagnosis);
+  }
+
+  // Próximos passos
+  const nextStepsList = document.getElementById("nextStepsList");
+  if (nextStepsList && vineTechDashboardState.nextSteps.length > 0) {
+    nextStepsList.innerHTML = "";
+    vineTechDashboardState.nextSteps.forEach((step) => {
+      const li = document.createElement("li");
+      li.textContent = step;
+      nextStepsList.appendChild(li);
+    });
+  }
+
+  // Status da conta
+  const badge = document.getElementById("accountStatusBadge");
+  if (badge) {
+    const isActive = vineTechDashboardState.accountStatus.active;
+    badge.textContent = isActive ? "Ativo" : "Inativo";
+    badge.classList.remove("vt-status-ok", "vt-status-warning");
+    badge.classList.add(isActive ? "vt-status-ok" : "vt-status-warning");
+  }
+
+  vineTechSetText(
+    "accountPlanText",
+    `Plano atual: ${vineTechDashboardState.accountStatus.planName}`
+  );
+  vineTechSetText(
+    "accountStatusText",
+    vineTechDashboardState.accountStatus.message
+  );
+
+  // Versículo diário (ACF)
+  const verse = vineTechGetDailyVerse();
+  vineTechSetText("dailyVerseText", `“${verse.text}”`);
+  vineTechSetText("dailyVerseRef", verse.ref);
+}
+
+// Liga os botões do Dashboard (Ações rápidas, Novo Projeto etc.)
+function vineTechDashboardWireEvents() {
+  const dashboardEl = document.getElementById("dashboard");
+  if (!dashboardEl) return; // Segurança
+
+  console.log("Conectando eventos do Dashboard do Gestor...");
+
+  const btnNewProject = document.getElementById("btnNewProject");
+  if (btnNewProject) {
+    btnNewProject.addEventListener("click", () => {
+      // TODO: integrar com fluxo real de criação de projeto
+      alert("Novo projeto: em breve este botão abrirá o fluxo de criação de projeto.");
+    });
+  }
+
+  const btnCloseCampaign = document.getElementById("btnCloseCampaign");
+  if (btnCloseCampaign) {
+    btnCloseCampaign.addEventListener("click", () => {
+      // TODO: integrar com fluxo real de encerramento de campanha
+      alert("Encerrar campanha: em breve este botão listará campanhas para encerramento.");
+    });
+  }
+
+  const btnQuickNewDiagnosis = document.getElementById("btnQuickNewDiagnosis");
+  if (btnQuickNewDiagnosis) {
+    btnQuickNewDiagnosis.addEventListener("click", () => {
+      // Aqui no futuro você chama a IA para gerar diagnóstico
+      alert("Novo diagnóstico: ação rápida para abrir a análise de conta.");
+    });
+  }
+
+  const btnQuickFunnelReview = document.getElementById("btnQuickFunnelReview");
+  if (btnQuickFunnelReview) {
+    btnQuickFunnelReview.addEventListener("click", () => {
+      alert("Revisão por funil: ação rápida para revisar etapa por etapa.");
+    });
+  }
+
+  const btnQuickOfferOrg = document.getElementById("btnQuickOfferOrg");
+  if (btnQuickOfferOrg) {
+    btnQuickOfferOrg.addEventListener("click", () => {
+      alert("Organização de ofertas: em breve este fluxo ajudará a organizar ofertas.");
+    });
+  }
+
+  const btnQuickHistory = document.getElementById("btnQuickHistory");
+  if (btnQuickHistory) {
+    btnQuickHistory.addEventListener("click", () => {
+      alert("Histórico de decisões: aqui você verá as últimas decisões tomadas.");
+    });
+  }
+}
+
+// Helpers específicos do Vine Tech (Dashboard)
+function vineTechSetText(id, value) {
+  const el = document.getElementById(id);
+  if (el != null && value != null) {
+    el.textContent = value;
+  }
+}
+
+function vineTechFormatNumber(value) {
+  if (value == null) return "0,00";
+  return Number(value).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function vineTechFormatCurrency(value) {
+  if (value == null) return "R$ 0,00";
+  return Number(value).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+// =============================
 // APLICAÇÃO
 // =============================
 
@@ -50,7 +232,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // garante que a biblioteca do Supabase existe
   if (!window.supabase) {
     alert("ERRO: biblioteca @supabase/supabase-js NÃO carregou.");
-    console.error("window.supabase está undefined. Verifique a tag <script> do Supabase no login.html.");
+    console.error(
+      "window.supabase está undefined. Verifique a tag <script> do Supabase no HTML."
+    );
     return;
   }
 
@@ -62,7 +246,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("Supabase client criado:", !!supabaseClient);
 
+  // Inicializa aplicação base (login etc.)
   App.init();
+
+  // Inicializa Dashboard (se o elemento existir na página)
+  vineTechDashboardInit();
+  vineTechDashboardWireEvents();
 });
 
 const App = {
@@ -78,7 +267,7 @@ const App = {
       alert("Página de login detectada (init)");
       this.setupLoginPage();
     } else {
-      console.log("Não é página de login, App.init terminou.");
+      console.log("Não é página de login, App.init terminou (modo público / Dashboard).");
     }
   },
 
