@@ -219,6 +219,260 @@
     </section>
     <!-- VINE TECH – DASHBOARD DO GESTOR – FIM -->
 
+    <!-- VINE TECH – ABA 2 – GESTÃO DE PROJETOS / DIAGNÓSTICO DE CAMPANHAS – INÍCIO -->
+    <section id="projectDiagnostics" class="vt-section vt-projects">
+      <header class="vt-section-header">
+        <h2>Gestão de Projetos & Diagnóstico de Campanhas</h2>
+        <p class="vt-section-subtitle">
+          Sistema técnico, estratégico e histórico para diagnóstico profundo de campanhas de tráfego pago.
+        </p>
+      </header>
+
+      <!-- BLOCO 1 – SELEÇÃO DO PROJETO -->
+      <section class="vt-panel">
+        <header class="vt-panel-header">
+          <h3>1. Seleção do projeto</h3>
+          <span class="vt-panel-tag">Ponto de partida</span>
+        </header>
+
+        <div class="vt-panel-body-grid">
+          <div class="vt-field">
+            <label for="diagProjectSelect">Projeto / Cliente</label>
+            <select id="diagProjectSelect" class="vt-input">
+              <option value="">Selecione um projeto ativo...</option>
+              <!-- Opções preenchidas via JS (vineTechProjects) -->
+            </select>
+          </div>
+
+          <div class="vt-field">
+            <label>Tipo de cliente</label>
+            <p id="diagClientType" class="vt-field-static">—</p>
+          </div>
+
+          <div class="vt-field">
+            <label>Status do projeto</label>
+            <span id="diagProjectStatusBadge" class="vt-status-badge vt-status-ok">
+              —
+            </span>
+          </div>
+        </div>
+
+        <div class="vt-panel-body-secondary">
+          <p id="diagProjectSummary" class="vt-small-text">
+            Selecione um projeto para visualizar o contexto estratégico.
+          </p>
+        </div>
+      </section>
+
+      <!-- BLOCO 2 – CONTEXTO DO DIAGNÓSTICO -->
+      <section class="vt-panel">
+        <header class="vt-panel-header">
+          <h3>2. Contexto do diagnóstico</h3>
+          <span class="vt-panel-tag">Ouvir antes de responder</span>
+        </header>
+
+        <div class="vt-panel-body-grid">
+          <div class="vt-field vt-field-full">
+            <label for="diagObjective">Objetivo da campanha</label>
+            <textarea
+              id="diagObjective"
+              class="vt-textarea"
+              rows="2"
+              placeholder="Ex: Gerar 200 leads por mês para a oferta principal, mantendo CPL abaixo de R$ 15,00."
+            ></textarea>
+          </div>
+
+          <div class="vt-field">
+            <label for="diagGoalType">Tipo de objetivo principal</label>
+            <select id="diagGoalType" class="vt-input">
+              <option value="">Selecione...</option>
+              <option value="leads">Leads</option>
+              <option value="vendas">Vendas</option>
+              <option value="trafego">Tráfego</option>
+              <option value="remarketing">Remarketing</option>
+            </select>
+          </div>
+
+          <div class="vt-field">
+            <label for="diagFunnelStage">Estágio do funil</label>
+            <select id="diagFunnelStage" class="vt-input">
+              <option value="">Selecione...</option>
+              <option value="topo">Topo de funil</option>
+              <option value="meio">Meio de funil</option>
+              <option value="fundo">Fundo de funil</option>
+            </select>
+          </div>
+
+          <div class="vt-field">
+            <label for="diagPlatform">Plataforma principal</label>
+            <select id="diagPlatform" class="vt-input">
+              <option value="">Selecione...</option>
+              <option value="meta">Meta Ads (Facebook / Instagram)</option>
+              <option value="google">Google Ads</option>
+              <option value="tiktok">TikTok Ads</option>
+              <option value="outro">Outra plataforma</option>
+            </select>
+          </div>
+
+          <div class="vt-field">
+            <label for="diagRunningDays">Tempo de veiculação (dias)</label>
+            <input
+              id="diagRunningDays"
+              type="number"
+              class="vt-input"
+              min="0"
+              placeholder="Ex: 7"
+            />
+          </div>
+
+          <div class="vt-field">
+            <label for="diagDailyBudget">Verba média diária (R$)</label>
+            <input
+              id="diagDailyBudget"
+              type="number"
+              class="vt-input"
+              min="0"
+              step="0.01"
+              placeholder="Ex: 150"
+            />
+          </div>
+        </div>
+
+        <p class="vt-panel-body-secondary">
+          “Quem responde antes de ouvir comete insensatez.” (Pv 18:13)
+        </p>
+      </section>
+
+      <!-- BLOCO 3 – ENVIO DE DADOS (PRINTS & CRIATIVOS) -->
+      <section class="vt-panel">
+        <header class="vt-panel-header">
+          <h3>3. Prints & criativos</h3>
+          <span class="vt-panel-tag">Mundo real</span>
+        </header>
+
+        <div class="vt-panel-body-grid">
+          <div class="vt-field vt-field-full">
+            <label for="diagFiles">Anexar prints do gerenciador / criativos</label>
+            <input
+              id="diagFiles"
+              type="file"
+              class="vt-input"
+              accept="image/*"
+              multiple
+            />
+            <p class="vt-helper-text">
+              Envie prints das métricas principais, anúncios, conjuntos e visão geral. O Vine Tech foi pensado para a realidade manual do gestor.
+            </p>
+          </div>
+
+          <div class="vt-field vt-field-full">
+            <label>Arquivos selecionados</label>
+            <ul id="diagFilesList" class="vt-list vt-list-condensed">
+              <li>Nenhum arquivo selecionado ainda.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOCO 4 – DIAGNÓSTICO INTELIGENTE (IA) -->
+      <section class="vt-panel">
+        <header class="vt-panel-header">
+          <h3>4. Diagnóstico inteligente (IA)</h3>
+          <span class="vt-panel-tag">Cérebro tático</span>
+        </header>
+
+        <div class="vt-panel-body-grid">
+          <div class="vt-field vt-field-full">
+            <button id="btnRunDiagnosis" class="vt-btn vt-btn-primary">
+              Solicitar diagnóstico da IA
+            </button>
+            <p class="vt-helper-text">
+              A IA do Vine Tech analisa contexto, métricas do projeto e informações fornecidas para apontar problemas, causas prováveis e impacto.
+            </p>
+          </div>
+
+          <div class="vt-field vt-field-full">
+            <label>Diagnóstico gerado</label>
+            <div id="diagIaResult" class="vt-ia-box">
+              Nenhum diagnóstico gerado ainda. Preencha o contexto e solicite um diagnóstico.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOCO 5 – CLASSIFICAÇÃO DO PROJETO -->
+      <section class="vt-panel">
+        <header class="vt-panel-header">
+          <h3>5. Classificação do projeto</h3>
+          <span class="vt-panel-tag">Prioridade</span>
+        </header>
+
+        <div class="vt-panel-body-grid">
+          <div class="vt-field">
+            <label>Status estratégico</label>
+            <span id="diagHealthBadge" class="vt-status-badge vt-status-neutral">
+              Sem classificação
+            </span>
+          </div>
+
+          <div class="vt-field vt-field-full">
+            <label>Resumo da saúde do projeto</label>
+            <p id="diagHealthSummary" class="vt-panel-body">
+              Assim que o diagnóstico for gerado, o Vine Tech classificará o projeto como saudável, atenção, crítico, em teste ou encerrado.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOCO 6 – PLANO DE AÇÃO (GESTOR + IA) -->
+      <section class="vt-panel">
+        <header class="vt-panel-header">
+          <h3>6. Plano de ação (Gestor + IA)</h3>
+          <span class="vt-panel-tag">Direção prática</span>
+        </header>
+
+        <div class="vt-panel-body-grid">
+          <div class="vt-field vt-field-full">
+            <label>Plano sugerido pela IA</label>
+            <div id="diagIaPlan" class="vt-ia-box">
+              O plano de ação detalhado será gerado junto com o diagnóstico.
+            </div>
+          </div>
+
+          <div class="vt-field vt-field-full">
+            <label for="diagManagerNotes">Decisão do gestor</label>
+            <textarea
+              id="diagManagerNotes"
+              class="vt-textarea"
+              rows="3"
+              placeholder="Ex: Vou pausar criativo 2 e redistribuir 30% da verba para o melhor conjunto, testar nova promessa focando em benefício financeiro."
+            ></textarea>
+          </div>
+
+          <div class="vt-field">
+            <button id="btnSaveActionPlan" class="vt-btn vt-btn-outline">
+              Salvar plano de ação
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOCO 7 – HISTÓRICO DE DIAGNÓSTICOS -->
+      <section class="vt-panel vt-panel-full">
+        <header class="vt-panel-header">
+          <h3>7. Histórico de diagnósticos</h3>
+          <span class="vt-panel-tag">Memória estratégica</span>
+        </header>
+
+        <div class="vt-panel-body">
+          <ul id="diagHistoryList" class="vt-list">
+            <li>Nenhum diagnóstico registrado ainda. Salve um plano de ação para iniciar o histórico.</li>
+          </ul>
+        </div>
+      </section>
+    </section>
+    <!-- VINE TECH – ABA 2 – GESTÃO DE PROJETOS / DIAGNÓSTICO DE CAMPANHAS – FIM -->
+
     <!-- SEÇÕES FUTURAS (PLACEHOLDERS) -->
     <section class="future" id="modulos">
       <h3>Módulos em desenvolvimento</h3>
