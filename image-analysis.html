@@ -2,67 +2,135 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Vine Tech — Análise de Imagens</title>
+  <title>Vine Tech — Análise de Criativos</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Supabase JS (versão atual via CDN) -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
   <style>
+    :root {
+      --vt-bg: #f5f7fa;
+      --vt-text: #1f2937;
+      --vt-muted: #6b7280;
+      --vt-border: #cbd5e1;
+      --vt-primary: #2563eb;
+      --vt-primary-dark: #1d4ed8;
+      --vt-surface: #ffffff;
+      --vt-header-bg: #0f172a;
+      --vt-header-text: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #f5f7fa;
-      color: #1f2937;
+      background: var(--vt-bg);
+      color: var(--vt-text);
     }
 
+    /* HEADER / NAV */
     header {
-      background: #0f172a;
-      color: #ffffff;
-      padding: 16px 24px;
+      background: var(--vt-header-bg);
+      color: var(--vt-header-text);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    header h1 {
+    .logo {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .top-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .top-nav a {
+      color: #cbd5f5;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+
+    .top-nav a:hover {
+      border-color: rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .top-nav .nav-current {
+      background: #1d4ed8;
+      color: #ffffff;
+      border-color: #1d4ed8;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 32px auto 40px;
+      padding: 0 16px;
+    }
+
+    .upload-card {
+      background: var(--vt-surface);
+      border-radius: 12px;
+      padding: 24px 24px 28px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+    }
+
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .back-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--vt-border);
+      background: #ffffff;
+      color: #111827;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .back-btn:hover {
+      background: #f3f4f6;
+    }
+
+    .upload-card h2 {
       margin: 0;
       font-size: 20px;
     }
 
-    main {
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-
-    .upload-card {
-      background: #ffffff;
-      border-radius: 8px;
-      padding: 24px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    }
-
-    .upload-card h2 {
-      margin-top: 0;
-      margin-bottom: 8px;
-    }
-
-    .upload-card p {
-      margin-top: 0;
-      margin-bottom: 24px;
-      color: #6b7280;
+    .upload-card p.subtitle {
+      margin-top: 4px;
+      margin-bottom: 20px;
+      color: var(--vt-muted);
+      font-size: 14px;
     }
 
     .drop-zone {
-      border: 2px dashed #cbd5e1;
-      border-radius: 8px;
+      border: 2px dashed var(--vt-border);
+      border-radius: 10px;
       padding: 40px 20px;
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
+      background: #f9fafb;
     }
 
     .drop-zone.dragover {
-      border-color: #2563eb;
+      border-color: var(--vt-primary);
       background: #eff6ff;
     }
 
@@ -72,28 +140,41 @@
       color: #475569;
     }
 
+    .drop-zone span strong {
+      color: var(--vt-primary-dark);
+    }
+
     .file-input {
       display: none;
     }
 
     .actions {
-      margin-top: 24px;
+      margin-top: 20px;
       display: flex;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
     .btn {
-      padding: 12px 20px;
-      border-radius: 6px;
+      padding: 11px 20px;
+      border-radius: 999px;
       border: none;
       cursor: pointer;
       font-size: 14px;
       font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .btn-primary {
-      background: #2563eb;
+      background: var(--vt-primary);
       color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--vt-primary-dark);
     }
 
     .btn-secondary {
@@ -101,15 +182,44 @@
       color: #111827;
     }
 
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+
     .preview {
       margin-top: 24px;
       display: none;
+    }
+
+    .preview h3 {
+      margin-bottom: 8px;
+      font-size: 15px;
     }
 
     .preview img {
       max-width: 100%;
       border-radius: 6px;
       border: 1px solid #e5e7eb;
+    }
+
+    .result-section {
+      margin-top: 24px;
+    }
+
+    .result-section h3 {
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .result-box {
+      white-space: pre-wrap;
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-size: 13px;
+      max-height: 360px;
+      overflow-y: auto;
     }
 
     footer {
@@ -124,14 +234,32 @@
 <body>
 
   <header>
-    <h1>Vine Tech — Análise de Criativos</h1>
+    <h1 class="logo">Vine Tech</h1>
+    <nav class="top-nav">
+      <a href="index.html#dashboard">Menu principal</a>
+      <a href="index.html#projectDiagnostics">Diagnóstico de campanhas</a>
+      <a href="#" title="Em breve">Meu perfil</a>
+      <a href="#" title="Em breve">Suporte</a>
+      <a href="#" title="Em breve">Configurações</a>
+      <a href="image-analysis.html" class="nav-current">Análise de criativos</a>
+    </nav>
   </header>
 
   <main>
     <div class="upload-card">
-      <h2>Enviar imagem para análise</h2>
-      <p>
-        Faça upload de um print de campanha para receber o diagnóstico da IA.
+      <div class="card-header-row">
+        <button
+          type="button"
+          class="back-btn"
+          onclick="window.location.href='index.html#projectDiagnostics';"
+        >
+          ← Voltar
+        </button>
+        <h2>Enviar imagem para análise</h2>
+      </div>
+
+      <p class="subtitle">
+        Faça upload de um print de campanha para receber um diagnóstico estratégico da IA (versão MVP).
       </p>
 
       <!-- Área de Drag & Drop -->
@@ -162,6 +290,14 @@
         <h3>Pré-visualização</h3>
         <img id="previewImage" src="" alt="Preview da imagem" />
       </div>
+
+      <!-- Resultado da "IA" -->
+      <div class="result-section">
+        <h3>Diagnóstico da IA (MVP)</h3>
+        <div id="resultBox" class="result-box">
+Nenhuma análise gerada ainda. Envie um print e clique em “Analisar imagem”.
+        </div>
+      </div>
     </div>
   </main>
 
@@ -169,20 +305,24 @@
     © Vine Tech — MVP em construção
   </footer>
 
-  <!-- Script local -->
+  <!-- Script da página -->
   <script>
     const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
     const preview = document.getElementById("preview");
     const previewImage = document.getElementById("previewImage");
     const clearBtn = document.getElementById("clearBtn");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const resultBox = document.getElementById("resultBox");
 
     let selectedFile = null;
 
+    // Clique para abrir seletor
     dropZone.addEventListener("click", () => {
       fileInput.click();
     });
 
+    // Drag over
     dropZone.addEventListener("dragover", (e) => {
       e.preventDefault();
       dropZone.classList.add("dragover");
@@ -212,6 +352,8 @@
       fileInput.value = "";
       preview.style.display = "none";
       previewImage.src = "";
+      resultBox.textContent =
+        "Nenhuma análise gerada ainda. Envie um print e clique em “Analisar imagem”.";
     });
 
     function handleFile(file) {
@@ -229,6 +371,48 @@
       };
       reader.readAsDataURL(file);
     }
+
+    // "IA" SIMULADA (MVP)
+    analyzeBtn.addEventListener("click", () => {
+      if (!selectedFile) {
+        alert("Selecione ou arraste um print de campanha antes de analisar.");
+        return;
+      }
+
+      const sizeKB = Math.round(selectedFile.size / 1024);
+      const fileName = selectedFile.name;
+
+      const analysisText = `
+📌 Diagnóstico inicial do criativo (MVP)
+
+🖼 Arquivo analisado:
+- Nome: ${fileName}
+- Tamanho aproximado: ${sizeKB} KB
+
+🎯 Leitura estratégica (simulação):
+- Este módulo do Vine Tech foi pensado para ler prints reais do Gerenciador de Anúncios (Meta, Google, etc.) e transformar em diagnóstico tático.
+- Na versão atual (MVP), estamos estruturando o fluxo de trabalho e o formato do relatório que a IA completa irá gerar.
+
+✅ O que o diagnóstico completo fará (quando conectado à IA real):
+- Identificar rapidamente campanhas, conjuntos e anúncios com pior desempenho.
+- Destacar métricas críticas (CTR, CPC, CPL, ROAS, frequência, alcance).
+- Sinalizar gargalos de funil (criativo, público, promessa, oferta, página).
+- Sugerir ações práticas: pausar, escalar, testar novo criativo, ajustar verba.
+
+🧭 Próximas ações recomendadas para o gestor:
+1. Use este print como parte do histórico do projeto dentro do módulo "Gestão de Projetos & Diagnóstico de Campanhas".
+2. Registre, no Vine Tech, o objetivo da campanha, estágio de funil e verba diária.
+3. A partir dos números do gerenciador, aplique o método:
+   - Proteja o caixa (cortar o que sangra dinheiro).
+   - Preserve o que funciona (campanhas com melhor ROAS).
+   - Teste com propósito (criativos e promessas com hipóteses claras).
+
+Em breve, o Vine Tech conectará esta etapa a um modelo de IA capaz de ler o print e devolver um diagnóstico profundamente detalhado, fazendo desta aba um verdadeiro “divisor de águas” na rotina do gestor de tráfego.
+      `.trim();
+
+      resultBox.textContent = "";
+      resultBox.innerText = analysisText;
+    });
   </script>
 
 </body>
